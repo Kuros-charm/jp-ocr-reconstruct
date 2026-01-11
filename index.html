@@ -1,0 +1,2012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本語 Puzzle - Japanese Learning Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #faf8f5;
+            --bg-secondary: #f0ebe3;
+            --bg-card: #ffffff;
+            --text-primary: #2d2a26;
+            --text-secondary: #6b6560;
+            --accent: #c84b31;
+            --accent-light: #ecb390;
+            --success: #4a9c6d;
+            --error: #c84b31;
+            --border: #e0dbd3;
+            --shadow: rgba(45, 42, 38, 0.08);
+        }
+
+        .dark {
+            --bg-primary: #1a1a1f;
+            --bg-secondary: #252529;
+            --bg-card: #2d2d33;
+            --text-primary: #f0ebe3;
+            --text-secondary: #a09a92;
+            --accent: #e07b5f;
+            --accent-light: #8b5a42;
+            --success: #6bc48f;
+            --error: #e07b5f;
+            --border: #3d3d44;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Background pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                radial-gradient(circle at 20% 80%, var(--accent-light) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, var(--accent-light) 0%, transparent 40%);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--accent), var(--text-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .game-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 8px 32px var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-label::before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+
+        .translation-box {
+            font-family: 'Noto Sans TC', sans-serif;
+            font-size: 1.4rem;
+            line-height: 1.8;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            text-align: center;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .answer-zone {
+            min-height: 70px;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 2px dashed var(--border);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .answer-zone.drag-over {
+            border-color: var(--accent);
+            background: rgba(200, 75, 49, 0.1);
+        }
+
+        .answer-zone.correct {
+            border-color: var(--success);
+            background: rgba(74, 156, 109, 0.1);
+        }
+
+        .answer-zone.incorrect {
+            border-color: var(--error);
+            background: rgba(200, 75, 49, 0.1);
+        }
+
+        .placeholder-text {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .segments-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            min-height: 60px;
+            padding: 10px 0;
+        }
+
+        .segment {
+            font-size: 1.2rem;
+            padding: 10px 18px;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .segment:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .segment:active {
+            transform: scale(0.95);
+        }
+
+        .segment.in-answer {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .segment.correct-position {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .segment.wrong-position {
+            background: var(--error);
+            border-color: var(--error);
+            color: white;
+            animation: shake 0.4s ease-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-4px); }
+            40% { transform: translateX(4px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+
+        .segment.dragging {
+            opacity: 0.5;
+        }
+
+        .segment.drop-before {
+            box-shadow: -3px 0 0 0 var(--accent), 0 2px 8px var(--shadow);
+        }
+
+        .segment.drop-after {
+            box-shadow: 3px 0 0 0 var(--accent), 0 2px 8px var(--shadow);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 28px;
+            font-size: 1rem;
+            font-family: inherit;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 4px 16px rgba(200, 75, 49, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(200, 75, 49, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+        }
+
+        .btn.loading-audio {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .btn.loading-audio .hint-icon {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .btn.playing .hint-icon {
+            animation: soundWave 0.5s ease-in-out infinite;
+        }
+
+        @keyframes soundWave {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .romaji-hint {
+            background: var(--bg-card);
+            border-radius: 14px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .romaji-text {
+            font-size: 1.15rem;
+            text-align: center;
+            color: var(--text-primary);
+            font-style: italic;
+            letter-spacing: 0.5px;
+        }
+
+        .romaji-text.loading {
+            color: var(--text-secondary);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 24px 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .divider span {
+            padding: 0 16px;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 14px;
+            padding: 32px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--bg-secondary);
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent);
+            background: rgba(200, 75, 49, 0.05);
+        }
+
+        .upload-area.drag-over {
+            border-color: var(--accent);
+            background: rgba(200, 75, 49, 0.1);
+            transform: scale(1.01);
+        }
+
+        .upload-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+
+        .upload-text {
+            font-size: 1rem;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .upload-hint {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .quiz-progress {
+            margin-bottom: 20px;
+        }
+
+        #quizProgressText {
+            display: block;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent-light));
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .quiz-navigation {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .quiz-exit {
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .score-display {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding: 16px;
+            background: var(--bg-card);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .score-item {
+            text-align: center;
+        }
+
+        .score-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .score-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            gap: 16px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .result-message {
+            text-align: center;
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 16px;
+            font-weight: 500;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .result-message.success {
+            background: rgba(74, 156, 109, 0.15);
+            color: var(--success);
+        }
+
+        .result-message.error {
+            background: rgba(200, 75, 49, 0.15);
+            color: var(--error);
+        }
+
+        .original-sentence {
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+
+        .sentence-input {
+            flex: 1;
+            padding: 14px 18px;
+            font-size: 1rem;
+            font-family: inherit;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            transition: border-color 0.3s ease;
+        }
+
+        .sentence-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .sentence-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .sample-sentences {
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .sample-btn {
+            padding: 8px 14px;
+            font-size: 0.85rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .sample-btn:hover {
+            border-color: var(--accent);
+            background: var(--bg-card);
+        }
+
+        .api-key-section {
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .api-key-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .api-key-input {
+            flex: 1;
+            padding: 12px 16px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: border-color 0.3s ease;
+        }
+
+        .api-key-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .api-key-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .api-key-status {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .api-key-status.connected {
+            background: rgba(74, 156, 109, 0.15);
+            color: var(--success);
+        }
+
+        .api-key-status.disconnected {
+            background: rgba(200, 75, 49, 0.15);
+            color: var(--error);
+        }
+
+        .api-key-link {
+            display: block;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .api-key-link:hover {
+            text-decoration: underline;
+        }
+
+        .btn-icon {
+            padding: 10px 14px;
+            font-size: 1.1rem;
+        }
+
+        .image-preview-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .image-preview-container {
+            position: relative;
+            max-width: 90vw;
+            max-height: 90vh;
+        }
+
+        .image-preview-img {
+            max-width: 100%;
+            max-height: 85vh;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .image-preview-close {
+            position: absolute;
+            top: -12px;
+            right: -12px;
+            width: 36px;
+            height: 36px;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .image-preview-close:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 16px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .game-card {
+                padding: 20px;
+            }
+
+            .translation-box {
+                font-size: 1.2rem;
+            }
+
+            .segment {
+                font-size: 1rem;
+                padding: 8px 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>日本語 Puzzle</h1>
+            <p class="subtitle">Reconstruct Japanese sentences from Chinese translations</p>
+        </header>
+
+        <div class="score-display">
+            <div class="score-item">
+                <div class="score-value" id="correctCount">0</div>
+                <div class="score-label">Correct</div>
+            </div>
+            <div class="score-item">
+                <div class="score-value" id="totalCount">0</div>
+                <div class="score-label">Attempts</div>
+            </div>
+            <div class="score-item">
+                <div class="score-value" id="streakCount">0</div>
+                <div class="score-label">Streak</div>
+            </div>
+        </div>
+
+        <div class="input-section game-card">
+            <div class="api-key-section">
+                <div class="section-label">Poe API Key</div>
+                <div class="api-key-wrapper">
+                    <input type="password" id="apiKeyInput" class="api-key-input"
+                           placeholder="Enter your Poe API key..." >
+                    <span id="apiKeyStatus" class="api-key-status disconnected">Not set</span>
+                </div>
+                <a href="https://poe.com/api_key" target="_blank" class="api-key-link">Get your API key at poe.com/api_key →</a>
+            </div>
+
+            <div class="section-label">Enter Japanese Sentence</div>
+            <div class="input-wrapper">
+                <input type="text" id="sentenceInput" class="sentence-input"
+                       placeholder="日本語の文を入力してください..." >
+                <button class="btn btn-primary" id="startBtn">Start</button>
+            </div>
+            <div class="sample-sentences">
+                <button class="sample-btn" data-sentence="今日はいい天気ですね。">今日はいい天気ですね</button>
+                <button class="sample-btn" data-sentence="私は日本語を勉強しています。">私は日本語を...</button>
+                <button class="sample-btn" data-sentence="明日は友達と映画を見に行きます。">明日は友達と...</button>
+                <button class="sample-btn" data-sentence="この本はとても面白いです。">この本はとても...</button>
+            </div>
+
+            <div class="divider">
+                <span>or</span>
+            </div>
+
+            <div class="section-label">Upload Novel Page</div>
+            <div class="upload-area" id="uploadArea">
+                <input type="file" id="imageInput" accept="image/*" hidden>
+                <div class="upload-icon">📖</div>
+                <div class="upload-text">Click or drag an image of a Japanese novel page</div>
+                <div class="upload-hint">Gemini will extract sentences for quiz</div>
+            </div>
+        </div>
+
+        <div id="extractingState" class="game-card hidden">
+            <div class="loading">
+                <div class="spinner"></div>
+                <div class="loading-text">Extracting sentences from image...</div>
+            </div>
+        </div>
+
+        <div id="quizSetArea" class="game-card hidden">
+            <div class="section-label">Quiz Set</div>
+            <div class="quiz-progress">
+                <span id="quizProgressText">Sentence 1 of 5</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+            <div class="quiz-navigation">
+                <button class="btn btn-secondary" id="prevSentenceBtn" disabled>← Prev</button>
+                <button class="btn btn-secondary btn-icon" id="showImageBtn" title="View uploaded image">📖</button>
+                <button class="btn btn-primary" id="nextSentenceBtn">Next →</button>
+            </div>
+            <button class="btn btn-secondary quiz-exit" id="exitQuizBtn">Exit Quiz Set</button>
+        </div>
+
+        <div id="loadingState" class="game-card hidden">
+            <div class="loading">
+                <div class="spinner"></div>
+                <div class="loading-text">Preparing quiz...</div>
+            </div>
+        </div>
+
+        <div id="gameArea" class="hidden">
+            <div class="game-card">
+                <div class="section-label">Chinese Translation (Traditional)</div>
+                <div class="translation-box" id="translationDisplay"></div>
+            </div>
+
+            <div class="game-card">
+                <div class="section-label">Your Answer</div>
+                <div class="answer-zone" id="answerZone">
+                    <span class="placeholder-text">Click or drag segments here to build the sentence</span>
+                </div>
+                <div id="resultArea"></div>
+            </div>
+
+            <div class="game-card">
+                <div class="section-label">Available Segments</div>
+                <div class="segments-pool" id="segmentsPool"></div>
+            </div>
+
+            <div id="romajiHint" class="romaji-hint hidden">
+                <div class="section-label">Romaji</div>
+                <div class="romaji-text" id="romajiText"></div>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-secondary" id="hintBtn">
+                    <span class="hint-icon">🔊</span>
+                    <span class="hint-text">Generate TTS</span>
+                </button>
+                <button class="btn btn-secondary" id="romajiBtn">
+                    <span class="hint-icon">Aa</span>
+                    <span class="hint-text">Romaji</span>
+                </button>
+                <button class="btn btn-secondary" id="clearBtn">Clear</button>
+                <button class="btn btn-primary" id="checkBtn">Check Answer</button>
+                <button class="btn btn-secondary" id="nextBtn">Next Sentence</button>
+            </div>
+
+            <audio id="audioPlayer" style="display: none;"></audio>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import BudouX for Japanese text segmentation
+        import { loadDefaultJapaneseParser } from 'https://cdn.jsdelivr.net/npm/budoux/+esm';
+        const budouxParser = loadDefaultJapaneseParser();
+
+        // Dark mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Poe OpenAI Compatible API configuration
+        const POE_API_BASE = 'https://api.poe.com/v1';
+        let poeApiKey = '';
+
+        // API Key management
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const apiKeyStatus = document.getElementById('apiKeyStatus');
+
+        function updateApiKeyStatus() {
+            poeApiKey = apiKeyInput.value.trim();
+            if (poeApiKey) {
+                apiKeyStatus.textContent = 'Ready';
+                apiKeyStatus.classList.remove('disconnected');
+                apiKeyStatus.classList.add('connected');
+            } else {
+                apiKeyStatus.textContent = 'Not set';
+                apiKeyStatus.classList.remove('connected');
+                apiKeyStatus.classList.add('disconnected');
+            }
+        }
+
+        apiKeyInput.addEventListener('input', () => {
+            updateApiKeyStatus();
+            saveState();
+        });
+
+        // Helper function to call Poe API (OpenAI Compatible)
+        async function callPoeAPI(model, messages, options = {}) {
+            if (!poeApiKey) {
+                throw new Error('Please enter your Poe API key first');
+            }
+
+            const body = {
+                model,
+                messages,
+                stream: false,
+                ...options
+            };
+
+            const response = await fetch(`${POE_API_BASE}/chat/completions`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${poeApiKey}`
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error?.message || `API error: ${response.status}`);
+            }
+
+            return await response.json();
+        }
+
+        // Helper function to convert File to base64 data URL
+        async function fileToBase64DataUrl(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // LocalStorage key
+        const STORAGE_KEY = 'nihongo_puzzle_state';
+
+        // Save state to localStorage
+        function saveState() {
+            const state = {
+                apiKey: poeApiKey,
+                currentSentence,
+                currentSegments,
+                answerSegments,
+                correctCount,
+                totalCount,
+                streakCount,
+                quizSentences,
+                currentQuizIndex,
+                isQuizMode,
+                uploadedImageDataUrl,
+                audioCache,
+                romajiCache,
+                translationCache
+            };
+            try {
+                // eslint-disable-next-line no-restricted-globals
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch (e) {
+                console.error('Failed to save state:', e);
+            }
+        }
+
+        // Load state from localStorage
+        function loadState() {
+            try {
+                // eslint-disable-next-line no-restricted-globals
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    return JSON.parse(saved);
+                }
+            } catch (e) {
+                console.error('Failed to load state:', e);
+            }
+            return null;
+        }
+
+        // Clear saved state
+        function clearSavedState() {
+            try {
+                // eslint-disable-next-line no-restricted-globals
+                localStorage.removeItem(STORAGE_KEY);
+            } catch (e) {
+                console.error('Failed to clear state:', e);
+            }
+        }
+
+        // Game state
+        let currentSentence = '';
+        let currentSegments = [];
+        let answerSegments = [];
+        let correctCount = 0;
+        let totalCount = 0;
+        let streakCount = 0;
+
+        // DOM elements
+        const sentenceInput = document.getElementById('sentenceInput');
+        const startBtn = document.getElementById('startBtn');
+        const loadingState = document.getElementById('loadingState');
+        const gameArea = document.getElementById('gameArea');
+        const translationDisplay = document.getElementById('translationDisplay');
+        const answerZone = document.getElementById('answerZone');
+        const segmentsPool = document.getElementById('segmentsPool');
+        const clearBtn = document.getElementById('clearBtn');
+        const checkBtn = document.getElementById('checkBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const resultArea = document.getElementById('resultArea');
+        const hintBtn = document.getElementById('hintBtn');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const romajiBtn = document.getElementById('romajiBtn');
+        const romajiHint = document.getElementById('romajiHint');
+        const romajiText = document.getElementById('romajiText');
+
+        let audioCache = {}; // Cache audio URLs for sentences
+        let romajiCache = {}; // Cache romaji for sentences
+        let translationCache = {}; // Cache translations for sentences
+        let quizSentences = []; // Array of sentences for quiz set
+        let currentQuizIndex = 0; // Current index in quiz set
+        let isQuizMode = false; // Whether we're in quiz mode
+        let uploadedImageDataUrl = null; // Store the uploaded image for preview
+
+        // Quiz set DOM elements
+        const uploadArea = document.getElementById('uploadArea');
+        const imageInput = document.getElementById('imageInput');
+        const extractingState = document.getElementById('extractingState');
+        const quizSetArea = document.getElementById('quizSetArea');
+        const quizProgressText = document.getElementById('quizProgressText');
+        const progressFill = document.getElementById('progressFill');
+        const prevSentenceBtn = document.getElementById('prevSentenceBtn');
+        const nextSentenceBtn = document.getElementById('nextSentenceBtn');
+        const exitQuizBtn = document.getElementById('exitQuizBtn');
+        const showImageBtn = document.getElementById('showImageBtn');
+
+        // Restore state from localStorage on page load
+        function restoreState() {
+            const saved = loadState();
+            if (!saved) return;
+
+            // Restore API key
+            if (saved.apiKey) {
+                poeApiKey = saved.apiKey;
+                apiKeyInput.value = saved.apiKey;
+                updateApiKeyStatus();
+            }
+
+            // Restore caches
+            if (saved.audioCache) audioCache = saved.audioCache;
+            if (saved.romajiCache) romajiCache = saved.romajiCache;
+            if (saved.translationCache) translationCache = saved.translationCache;
+
+            // Restore scores
+            if (typeof saved.correctCount === 'number') {
+                correctCount = saved.correctCount;
+                document.getElementById('correctCount').textContent = correctCount;
+            }
+            if (typeof saved.totalCount === 'number') {
+                totalCount = saved.totalCount;
+                document.getElementById('totalCount').textContent = totalCount;
+            }
+            if (typeof saved.streakCount === 'number') {
+                streakCount = saved.streakCount;
+                document.getElementById('streakCount').textContent = streakCount;
+            }
+
+            // Restore uploaded image
+            if (saved.uploadedImageDataUrl) {
+                uploadedImageDataUrl = saved.uploadedImageDataUrl;
+            }
+
+            // Restore quiz mode state
+            if (saved.isQuizMode && saved.quizSentences && saved.quizSentences.length > 0) {
+                quizSentences = saved.quizSentences;
+                currentQuizIndex = saved.currentQuizIndex || 0;
+                isQuizMode = true;
+                currentSentence = saved.currentSentence || '';
+                currentSegments = saved.currentSegments || [];
+                answerSegments = saved.answerSegments || [];
+
+                // Show quiz UI
+                updateQuizUI();
+                quizSetArea.classList.remove('hidden');
+
+                // Restore game state if there's a current sentence
+                if (currentSentence && currentSegments.length > 0) {
+                    // Need to fetch translation again or restore it
+                    // For now, just restart the current sentence
+                    restoreCurrentGame();
+                }
+            }
+        }
+
+        // Restore current game state, using cached translation if available
+        async function restoreCurrentGame() {
+            if (!currentSentence) return;
+
+            // Check if translation is cached
+            if (translationCache[currentSentence]) {
+                translationDisplay.textContent = translationCache[currentSentence];
+                renderSegmentsPool();
+                renderAnswerZone();
+                gameArea.classList.remove('hidden');
+                updateTTSButtonState();
+                return;
+            }
+
+            // Show loading if we need to fetch translation
+            loadingState.classList.remove('hidden');
+            gameArea.classList.add('hidden');
+
+            // Request translation via OpenAI Compatible API
+            try {
+                const response = await callPoeAPI('Gemini-3-Flash', [
+                    {
+                        role: 'user',
+                        content: `Translate the following Japanese sentence to Traditional Chinese. Only output the translation, nothing else:\n\n${currentSentence}`
+                    }
+                ]);
+
+                loadingState.classList.add('hidden');
+
+                const content = response.choices[0]?.message?.content || '';
+                const translation = extractTranslation(content);
+                translationCache[currentSentence] = translation; // Cache the translation
+                translationDisplay.textContent = translation;
+
+                // Render the game with restored segments
+                renderSegmentsPool();
+                renderAnswerZone();
+                gameArea.classList.remove('hidden');
+                updateTTSButtonState();
+                saveState(); // Save with new cached translation
+            } catch (err) {
+                loadingState.classList.add('hidden');
+                // If translation fails, just show the game without translation
+                translationDisplay.textContent = '(Translation unavailable - check API key)';
+                renderSegmentsPool();
+                renderAnswerZone();
+                gameArea.classList.remove('hidden');
+            }
+        }
+
+        // Segment Japanese text using BudouX
+        function segmentJapanese(text) {
+            return budouxParser.parse(text).filter(s => s.trim());
+        }
+
+        // Shuffle array
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Render segments in pool
+        function renderSegmentsPool() {
+            segmentsPool.innerHTML = '';
+            currentSegments.forEach((seg, index) => {
+                if (!answerSegments.includes(index)) {
+                    const el = createSegmentElement(seg, index);
+                    segmentsPool.appendChild(el);
+                }
+            });
+        }
+
+        // Render answer zone
+        function renderAnswerZone() {
+            answerZone.innerHTML = '';
+            answerZone.classList.remove('correct', 'incorrect');
+
+            if (answerSegments.length === 0) {
+                answerZone.innerHTML = '<span class="placeholder-text">Click or drag segments here to build the sentence</span>';
+            } else {
+                answerSegments.forEach((index, pos) => {
+                    const el = createSegmentElement(currentSegments[index], index, true, pos);
+                    answerZone.appendChild(el);
+                });
+            }
+        }
+
+        // Create segment element
+        function createSegmentElement(text, index, inAnswer = false, position = -1) {
+            const el = document.createElement('div');
+            el.className = 'segment' + (inAnswer ? ' in-answer' : '');
+            el.textContent = text;
+            el.draggable = true;
+            el.dataset.index = index;
+            el.dataset.position = position;
+
+            el.addEventListener('click', () => {
+                if (inAnswer) {
+                    // Remove from answer
+                    answerSegments = answerSegments.filter(i => i !== index);
+                } else {
+                    // Add to answer
+                    answerSegments.push(index);
+                }
+                renderSegmentsPool();
+                renderAnswerZone();
+                resultArea.innerHTML = '';
+                saveState();
+            });
+
+            el.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', JSON.stringify({ index, inAnswer, position }));
+                el.classList.add('dragging');
+                draggedElement = el;
+            });
+
+            el.addEventListener('dragend', () => {
+                el.classList.remove('dragging');
+                draggedElement = null;
+                // Remove all drop indicators
+                document.querySelectorAll('.segment.drop-before, .segment.drop-after').forEach(s => {
+                    s.classList.remove('drop-before', 'drop-after');
+                });
+            });
+
+            // For reordering within answer zone
+            if (inAnswer) {
+                el.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    if (!draggedElement || draggedElement === el) return;
+
+                    const rect = el.getBoundingClientRect();
+                    const midX = rect.left + rect.width / 2;
+
+                    // Remove previous indicators
+                    document.querySelectorAll('.segment.drop-before, .segment.drop-after').forEach(s => {
+                        s.classList.remove('drop-before', 'drop-after');
+                    });
+
+                    // Show drop indicator
+                    if (e.clientX < midX) {
+                        el.classList.add('drop-before');
+                    } else {
+                        el.classList.add('drop-after');
+                    }
+                });
+
+                el.addEventListener('dragleave', () => {
+                    el.classList.remove('drop-before', 'drop-after');
+                });
+
+                el.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    el.classList.remove('drop-before', 'drop-after');
+
+                    try {
+                        const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+
+                        if (data.inAnswer) {
+                            // Reordering within answer zone
+                            const fromPos = data.position;
+                            const toPos = parseInt(el.dataset.position);
+
+                            if (fromPos === toPos) return;
+
+                            const rect = el.getBoundingClientRect();
+                            const midX = rect.left + rect.width / 2;
+                            let insertPos = e.clientX < midX ? toPos : toPos + 1;
+
+                            // Adjust for removal
+                            if (fromPos < insertPos) insertPos--;
+
+                            // Remove from old position and insert at new
+                            const [moved] = answerSegments.splice(fromPos, 1);
+                            answerSegments.splice(insertPos, 0, moved);
+                        } else {
+                            // Adding from pool to specific position
+                            if (!answerSegments.includes(data.index)) {
+                                const toPos = parseInt(el.dataset.position);
+                                const rect = el.getBoundingClientRect();
+                                const midX = rect.left + rect.width / 2;
+                                const insertPos = e.clientX < midX ? toPos : toPos + 1;
+
+                                answerSegments.splice(insertPos, 0, data.index);
+                            }
+                        }
+
+                        renderSegmentsPool();
+                        renderAnswerZone();
+                        resultArea.innerHTML = '';
+                        saveState();
+                    } catch (err) {
+                        // Ignore invalid data
+                    }
+                });
+            }
+
+            return el;
+        }
+
+        let draggedElement = null;
+
+        // Setup drag and drop for answer zone
+        answerZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            answerZone.classList.add('drag-over');
+        });
+
+        answerZone.addEventListener('dragleave', () => {
+            answerZone.classList.remove('drag-over');
+        });
+
+        answerZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            answerZone.classList.remove('drag-over');
+
+            try {
+                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                if (!data.inAnswer && !answerSegments.includes(data.index)) {
+                    answerSegments.push(data.index);
+                    renderSegmentsPool();
+                    renderAnswerZone();
+                    resultArea.innerHTML = '';
+                    saveState();
+                }
+            } catch (err) {
+                // Ignore invalid data
+            }
+        });
+
+        // Extract translation from response, removing thinking tokens
+        function extractTranslation(content) {
+            let text = content.trim();
+
+            // Remove "*Thinking...*" marker if present
+            text = text.replace(/^\*Thinking\.\.\.\*\s*/i, '');
+
+            // Remove blockquote thinking sections (lines starting with >)
+            // Split by lines and filter out blockquote lines
+            const lines = text.split('\n');
+            const nonThinkingLines = [];
+            let inThinkingBlock = false;
+
+            for (const line of lines) {
+                const trimmedLine = line.trim();
+
+                // Skip blockquote lines (thinking content)
+                if (trimmedLine.startsWith('>')) {
+                    inThinkingBlock = true;
+                    continue;
+                }
+
+                // Skip empty lines right after thinking blocks
+                if (inThinkingBlock && trimmedLine === '') {
+                    continue;
+                }
+
+                // Skip bold headers that are part of thinking (e.g., **Processing...**)
+                if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
+                    continue;
+                }
+
+                inThinkingBlock = false;
+                if (trimmedLine) {
+                    nonThinkingLines.push(trimmedLine);
+                }
+            }
+
+            // Get the last non-empty line as the translation
+            let translation = nonThinkingLines[nonThinkingLines.length - 1] || text;
+
+            // Clean up quotes and extra whitespace
+            translation = translation.replace(/^["「『]|["」』]$/g, '').trim();
+
+            return translation;
+        }
+
+        // Process extracted sentences from image
+        function processExtractedSentences(content) {
+            extractingState.classList.add('hidden');
+
+            // Extract and parse the sentences (use extractAllLines, not extractTranslation)
+            const cleanContent = extractAllLines(content);
+            const sentences = parseSentences(cleanContent);
+
+            if (sentences.length === 0) {
+                showCustomAlert('No sentences could be extracted from the image. Please try a clearer image.');
+                return;
+            }
+
+            // Start quiz mode
+            quizSentences = sentences;
+            currentQuizIndex = 0;
+            isQuizMode = true;
+            updateQuizUI();
+            quizSetArea.classList.remove('hidden');
+
+            // Save state after quiz mode starts
+            saveState();
+
+            // Start with the first sentence
+            startGame(quizSentences[0]);
+        }
+
+        // Extract all lines from response, removing only thinking tokens (keeps all content lines)
+        function extractAllLines(content) {
+            let text = content.trim();
+
+            // Remove "*Thinking...*" marker if present
+            text = text.replace(/^\*Thinking\.\.\.\*\s*/i, '');
+
+            // Remove blockquote thinking sections (lines starting with >)
+            const lines = text.split('\n');
+            const contentLines = [];
+            let inThinkingBlock = false;
+
+            for (const line of lines) {
+                const trimmedLine = line.trim();
+
+                // Skip blockquote lines (thinking content)
+                if (trimmedLine.startsWith('>')) {
+                    inThinkingBlock = true;
+                    continue;
+                }
+
+                // Skip empty lines right after thinking blocks
+                if (inThinkingBlock && trimmedLine === '') {
+                    continue;
+                }
+
+                // Skip bold headers that are part of thinking (e.g., **Processing...**)
+                if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
+                    continue;
+                }
+
+                inThinkingBlock = false;
+                // Keep ALL content lines, not just the last one
+                contentLines.push(trimmedLine);
+            }
+
+            return contentLines.join('\n');
+        }
+
+        // Parse sentences from extracted text
+        function parseSentences(text) {
+            // Try to parse as JSON first (if the response is a JSON array)
+            try {
+                const parsed = JSON.parse(text);
+                if (Array.isArray(parsed)) {
+                    return parsed.filter(s => s && s.trim());
+                }
+            } catch (e) {
+                // Not JSON, parse as text
+            }
+
+            // Split by common delimiters and clean up
+            const sentences = text
+                .split(/[\n\r]+/)
+                .map(line => line.replace(/^[\d\.\-\)\]]+\s*/, '').trim()) // Remove numbering
+                .filter(line => {
+                    // Filter valid Japanese sentences
+                    const hasJapanese = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(line);
+                    const isNotTooShort = line.length >= 3;
+                    return hasJapanese && isNotTooShort;
+                });
+
+            return sentences;
+        }
+
+        // Update quiz progress UI
+        function updateQuizUI() {
+            const total = quizSentences.length;
+            const current = currentQuizIndex + 1;
+
+            quizProgressText.textContent = `Sentence ${current} of ${total}`;
+            progressFill.style.width = `${(current / total) * 100}%`;
+
+            prevSentenceBtn.disabled = currentQuizIndex === 0;
+            nextSentenceBtn.textContent = currentQuizIndex === total - 1 ? 'Finish ✓' : 'Next →';
+        }
+
+        // Handle image upload
+        async function handleImageUpload(file) {
+            if (!file || !file.type.startsWith('image/')) {
+                showCustomAlert('Please upload a valid image file');
+                return;
+            }
+
+            // Show extracting state
+            extractingState.classList.remove('hidden');
+            quizSetArea.classList.add('hidden');
+            gameArea.classList.add('hidden');
+
+            try {
+                // Convert file to base64 data URL
+                const base64DataUrl = await fileToBase64DataUrl(file);
+
+                // Store the image for preview
+                uploadedImageDataUrl = base64DataUrl;
+
+                // Call Gemini-3-Flash with image via OpenAI Compatible API
+                const response = await callPoeAPI('Gemini-3-Flash', [
+                    {
+                        role: 'user',
+                        content: [
+                            {
+                                type: 'text',
+                                text: 'Look at this image of a Japanese novel/book page. Extract ALL complete Japanese sentences from the text visible in the image, in reading order. Output ONLY the Japanese sentences, one per line, numbered. Do not include translations or explanations. Do not skip any sentences - extract every sentence you can read from the page.'
+                            },
+                            {
+                                type: 'image_url',
+                                image_url: {
+                                    url: base64DataUrl
+                                }
+                            }
+                        ]
+                    }
+                ]);
+
+                const content = response.choices[0]?.message?.content || '';
+                processExtractedSentences(content);
+            } catch (err) {
+                extractingState.classList.add('hidden');
+                showCustomAlert('Error: ' + err.message);
+            }
+        }
+
+        // Request Romaji for current sentence
+        async function requestRomaji() {
+            if (!currentSentence) return;
+
+            // If already visible, toggle off
+            if (!romajiHint.classList.contains('hidden') && romajiCache[currentSentence]) {
+                romajiHint.classList.add('hidden');
+                return;
+            }
+
+            // Show the hint container
+            romajiHint.classList.remove('hidden');
+
+            // Check cache first
+            if (romajiCache[currentSentence]) {
+                romajiText.textContent = romajiCache[currentSentence];
+                romajiText.classList.remove('loading');
+                return;
+            }
+
+            // Show loading state
+            romajiText.textContent = 'Converting to romaji...';
+            romajiText.classList.add('loading');
+            romajiBtn.classList.add('loading-audio');
+            romajiBtn.querySelector('.hint-text').textContent = 'Loading...';
+
+            try {
+                // Call Gemini-3-Flash via OpenAI Compatible API
+                const response = await callPoeAPI('Gemini-3-Flash', [
+                    {
+                        role: 'user',
+                        content: `Convert the following Japanese sentence to romaji. Only output the romaji, nothing else:\n\n${currentSentence}`
+                    }
+                ]);
+
+                const content = response.choices[0]?.message?.content || '';
+                const romaji = extractTranslation(content);
+                romajiCache[currentSentence] = romaji;
+                romajiText.textContent = romaji;
+                romajiText.classList.remove('loading');
+                romajiBtn.classList.remove('loading-audio');
+                romajiBtn.querySelector('.hint-text').textContent = 'Romaji';
+                // Save state with new cache
+                saveState();
+            } catch (err) {
+                romajiText.textContent = 'Error: ' + err.message;
+                romajiText.classList.remove('loading');
+                romajiBtn.classList.remove('loading-audio');
+                romajiBtn.querySelector('.hint-text').textContent = 'Romaji';
+            }
+        }
+
+        // Play audio from URL (called directly from user click)
+        function playAudio(url) {
+            audioPlayer.src = url;
+            audioPlayer.play();
+            hintBtn.classList.add('playing');
+
+            audioPlayer.onended = () => {
+                hintBtn.classList.remove('playing');
+            };
+
+            audioPlayer.onerror = () => {
+                hintBtn.classList.remove('playing');
+                showCustomAlert('Error playing audio');
+            };
+        }
+
+        // Extract audio URL from markdown response
+        function extractAudioUrl(content) {
+            // TTS bots often return markdown with audio links like ![audio](url) or [Download](url)
+            const audioUrlMatch = content.match(/\[.*?\]\((https?:\/\/[^\s)]+\.(?:mp3|wav|ogg|m4a)[^\s)]*)\)/i);
+            if (audioUrlMatch) {
+                return audioUrlMatch[1];
+            }
+
+            // Try to find any URL ending with audio extension
+            const directUrlMatch = content.match(/(https?:\/\/[^\s]+\.(?:mp3|wav|ogg|m4a)[^\s]*)/i);
+            if (directUrlMatch) {
+                return directUrlMatch[1];
+            }
+
+            // Look for poecdn URLs (common in Poe responses)
+            const poecdnMatch = content.match(/(https?:\/\/[^\s]*poecdn[^\s]+)/i);
+            if (poecdnMatch) {
+                return poecdnMatch[1];
+            }
+
+            return null;
+        }
+
+        // Request TTS for current sentence
+        async function requestTTS() {
+            if (!currentSentence) return;
+
+            // If audio is cached, play it directly (this is a user gesture)
+            if (audioCache[currentSentence]) {
+                playAudio(audioCache[currentSentence]);
+                return;
+            }
+
+            // Show loading state and generate TTS
+            hintBtn.classList.add('loading-audio');
+            hintBtn.querySelector('.hint-text').textContent = 'Generating...';
+
+            try {
+                // Call Hailuo-Speech-02 via OpenAI Compatible API
+                const response = await callPoeAPI('Hailuo-Speech-02', [
+                    {
+                        role: 'user',
+                        content: currentSentence
+                    }
+                ], {
+                    extra_body: {
+                        language: 'Japanese',
+                        voice: 'Calm_Woman',
+                        speed: 0.7,
+                        pitch: 1
+                    }
+                });
+
+                const content = response.choices[0]?.message?.content || '';
+                const audioUrl = extractAudioUrl(content);
+
+                hintBtn.classList.remove('loading-audio');
+
+                if (audioUrl) {
+                    // Cache the audio URL
+                    audioCache[currentSentence] = audioUrl;
+                    // Update button to show "Listen" (ready to play)
+                    hintBtn.querySelector('.hint-text').textContent = 'Listen';
+                    // Save state with new cache
+                    saveState();
+                } else {
+                    hintBtn.querySelector('.hint-text').textContent = 'Generate TTS';
+                    showCustomAlert('No audio was generated. Response: ' + content.substring(0, 100));
+                }
+            } catch (err) {
+                hintBtn.classList.remove('loading-audio');
+                hintBtn.querySelector('.hint-text').textContent = 'Generate TTS';
+                showCustomAlert('Error: ' + err.message);
+            }
+        }
+
+        // Update TTS button state based on cache
+        function updateTTSButtonState() {
+            if (audioCache[currentSentence]) {
+                hintBtn.querySelector('.hint-text').textContent = 'Listen';
+            } else {
+                hintBtn.querySelector('.hint-text').textContent = 'Generate TTS';
+            }
+        }
+
+        // Start game with sentence
+        async function startGame(sentence) {
+            if (!sentence.trim()) {
+                showCustomAlert('Please enter a Japanese sentence');
+                return;
+            }
+
+            currentSentence = sentence.trim();
+            answerSegments = [];
+            resultArea.innerHTML = '';
+            romajiHint.classList.add('hidden'); // Hide romaji when starting new sentence
+            updateTTSButtonState(); // Update TTS button based on cache
+
+            // Segment using BudouX (instant, no API call needed)
+            const segments = segmentJapanese(currentSentence);
+            currentSegments = shuffleArray(segments);
+
+            // Check if translation is cached
+            if (translationCache[currentSentence]) {
+                translationDisplay.textContent = translationCache[currentSentence];
+                renderSegmentsPool();
+                renderAnswerZone();
+                gameArea.classList.remove('hidden');
+                saveState();
+                return;
+            }
+
+            // Show loading
+            loadingState.classList.remove('hidden');
+            gameArea.classList.add('hidden');
+
+            // Request translation via OpenAI Compatible API
+            try {
+                const response = await callPoeAPI('Gemini-3-Flash', [
+                    {
+                        role: 'user',
+                        content: `Translate the following Japanese sentence to Traditional Chinese. Only output the translation, nothing else:\n\n${currentSentence}`
+                    }
+                ]);
+
+                loadingState.classList.add('hidden');
+
+                // Extract clean translation, removing thinking tokens
+                const content = response.choices[0]?.message?.content || '';
+                const translation = extractTranslation(content);
+                translationCache[currentSentence] = translation; // Cache the translation
+                translationDisplay.textContent = translation;
+
+                // Render the game
+                renderSegmentsPool();
+                renderAnswerZone();
+                gameArea.classList.remove('hidden');
+
+                // Save state after game starts
+                saveState();
+            } catch (err) {
+                loadingState.classList.add('hidden');
+                showCustomAlert('Error: ' + err.message);
+            }
+        }
+
+        // Get the correct order of segments (using BudouX)
+        function getCorrectSegmentOrder() {
+            return segmentJapanese(currentSentence);
+        }
+
+        // Check answer and highlight wrong positions
+        function checkAnswer() {
+            const userAnswer = answerSegments.map(i => currentSegments[i]).join('');
+            const correct = userAnswer === currentSentence;
+
+            totalCount++;
+            document.getElementById('totalCount').textContent = totalCount;
+
+            if (correct) {
+                correctCount++;
+                streakCount++;
+                document.getElementById('correctCount').textContent = correctCount;
+                document.getElementById('streakCount').textContent = streakCount;
+                answerZone.classList.add('correct');
+
+                // Mark all segments as correct
+                highlightSegmentPositions(true);
+
+                resultArea.innerHTML = `
+                    <div class="result-message success">
+                        🎉 Correct! Great job!
+                    </div>
+                `;
+            } else {
+                streakCount = 0;
+                document.getElementById('streakCount').textContent = streakCount;
+                answerZone.classList.add('incorrect');
+
+                // Highlight which segments are in wrong positions
+                highlightSegmentPositions(false);
+
+                resultArea.innerHTML = `
+                    <div class="result-message error">
+                        Not quite right. Check the highlighted segments!
+                    </div>
+                `;
+            }
+
+            // Save state after checking answer
+            saveState();
+        }
+
+        // Highlight segments based on correctness
+        function highlightSegmentPositions(allCorrect) {
+            const correctOrder = getCorrectSegmentOrder();
+            const answerElements = answerZone.querySelectorAll('.segment');
+
+            answerElements.forEach((el, pos) => {
+                const segmentText = currentSegments[answerSegments[pos]];
+                const expectedText = correctOrder[pos];
+
+                // Remove previous position classes
+                el.classList.remove('correct-position', 'wrong-position');
+
+                if (allCorrect || segmentText === expectedText) {
+                    el.classList.add('correct-position');
+                } else {
+                    el.classList.add('wrong-position');
+                }
+            });
+        }
+
+        // Clear answer
+        function clearAnswer() {
+            answerSegments = [];
+            resultArea.innerHTML = '';
+            renderSegmentsPool();
+            renderAnswerZone();
+            saveState();
+        }
+
+        // Custom alert function
+        function showCustomAlert(message) {
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;';
+            modal.innerHTML = `
+                <div style="background:var(--bg-card);padding:24px;border-radius:16px;max-width:320px;text-align:center;box-shadow:0 8px 32px var(--shadow);">
+                    <p style="margin-bottom:16px;color:var(--text-primary);">${message}</p>
+                    <button style="padding:10px 24px;background:var(--accent);color:white;border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-size:1rem;">OK</button>
+                </div>
+            `;
+            modal.querySelector('button').onclick = () => modal.remove();
+            document.body.appendChild(modal);
+        }
+
+        // Show uploaded image in a modal
+        function showUploadedImage() {
+            if (!uploadedImageDataUrl) {
+                showCustomAlert('No image has been uploaded yet.');
+                return;
+            }
+
+            const modal = document.createElement('div');
+            modal.className = 'image-preview-modal';
+            modal.innerHTML = `
+                <div class="image-preview-container">
+                    <button class="image-preview-close">✕</button>
+                    <img src="${uploadedImageDataUrl}" alt="Uploaded novel page" class="image-preview-img">
+                </div>
+            `;
+
+            // Close on button click
+            modal.querySelector('.image-preview-close').onclick = () => modal.remove();
+
+            // Close on backdrop click
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.remove();
+            };
+
+            // Close on Escape key
+            const handleEscape = (e) => {
+                if (e.key === 'Escape') {
+                    modal.remove();
+                    document.removeEventListener('keydown', handleEscape);
+                }
+            };
+            document.addEventListener('keydown', handleEscape);
+
+            document.body.appendChild(modal);
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', () => startGame(sentenceInput.value));
+
+        sentenceInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') startGame(sentenceInput.value);
+        });
+
+        document.querySelectorAll('.sample-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                sentenceInput.value = btn.dataset.sentence;
+                startGame(btn.dataset.sentence);
+            });
+        });
+
+        hintBtn.addEventListener('click', requestTTS);
+        romajiBtn.addEventListener('click', requestRomaji);
+        clearBtn.addEventListener('click', clearAnswer);
+        checkBtn.addEventListener('click', checkAnswer);
+        nextBtn.addEventListener('click', () => {
+            if (isQuizMode) {
+                // In quiz mode, go to next sentence
+                goToNextQuizSentence();
+            } else {
+                sentenceInput.value = '';
+                sentenceInput.focus();
+                gameArea.classList.add('hidden');
+            }
+        });
+
+        // Upload area event listeners
+        uploadArea.addEventListener('click', () => imageInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('drag-over');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file) handleImageUpload(file);
+        });
+
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleImageUpload(file);
+            e.target.value = ''; // Reset to allow same file upload
+        });
+
+        // Quiz navigation
+        prevSentenceBtn.addEventListener('click', () => {
+            if (currentQuizIndex > 0) {
+                currentQuizIndex--;
+                updateQuizUI();
+                startGame(quizSentences[currentQuizIndex]);
+            }
+        });
+
+        showImageBtn.addEventListener('click', showUploadedImage);
+
+        nextSentenceBtn.addEventListener('click', goToNextQuizSentence);
+
+        function goToNextQuizSentence() {
+            if (currentQuizIndex < quizSentences.length - 1) {
+                currentQuizIndex++;
+                updateQuizUI();
+                startGame(quizSentences[currentQuizIndex]);
+            } else {
+                // Quiz complete
+                showQuizComplete();
+            }
+        }
+
+        function showQuizComplete() {
+            quizSetArea.classList.add('hidden');
+            gameArea.classList.add('hidden');
+            isQuizMode = false;
+
+            // Show completion message
+            const completeMsg = document.createElement('div');
+            completeMsg.className = 'game-card';
+            completeMsg.id = 'quizCompleteMsg';
+            completeMsg.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 3rem; margin-bottom: 16px;">🎉</div>
+                    <h2 style="margin-bottom: 12px; color: var(--success);">Quiz Complete!</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                        You've completed all ${quizSentences.length} sentences!
+                    </p>
+                    <p style="font-size: 1.2rem; margin-bottom: 20px;">
+                        Score: <strong>${correctCount}</strong> correct out of <strong>${totalCount}</strong> attempts
+                    </p>
+                    <button class="btn btn-primary" onclick="resetQuiz()">Start New Quiz</button>
+                </div>
+            `;
+            document.querySelector('.container').insertBefore(completeMsg, loadingState);
+        }
+
+        function resetQuiz() {
+            const completeMsg = document.getElementById('quizCompleteMsg');
+            if (completeMsg) completeMsg.remove();
+
+            quizSentences = [];
+            currentQuizIndex = 0;
+            isQuizMode = false;
+            correctCount = 0;
+            totalCount = 0;
+            streakCount = 0;
+            uploadedImageDataUrl = null; // Clear the stored image
+            document.getElementById('correctCount').textContent = '0';
+            document.getElementById('totalCount').textContent = '0';
+            document.getElementById('streakCount').textContent = '0';
+            saveState();
+        }
+
+        // Make resetQuiz available globally for onclick handler
+        window.resetQuiz = resetQuiz;
+
+        exitQuizBtn.addEventListener('click', () => {
+            isQuizMode = false;
+            quizSetArea.classList.add('hidden');
+            gameArea.classList.add('hidden');
+            quizSentences = [];
+            currentQuizIndex = 0;
+            uploadedImageDataUrl = null; // Clear the stored image
+            saveState();
+        });
+
+        // Initialize: restore state from localStorage
+        restoreState();
+    </script>
+</body>
+</html>
+
+
