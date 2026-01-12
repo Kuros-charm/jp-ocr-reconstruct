@@ -337,6 +337,151 @@
             color: var(--text-secondary);
         }
 
+        /* Waveform player styles */
+        .waveform-player {
+            background: var(--bg-card);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .waveform-container {
+            margin-bottom: 16px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: var(--bg-secondary);
+            padding: 12px;
+        }
+
+        #waveform {
+            width: 100%;
+            min-height: 80px;
+        }
+
+        .waveform-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .waveform-seek-container {
+            margin-top: 12px;
+            padding: 0 4px;
+        }
+
+        .waveform-seek {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--bg-secondary);
+            outline: none;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .waveform-seek::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: grab;
+            box-shadow: 0 2px 6px rgba(200, 75, 49, 0.4);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .waveform-seek::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 3px 10px rgba(200, 75, 49, 0.5);
+        }
+
+        .waveform-seek::-webkit-slider-thumb:active {
+            cursor: grabbing;
+            transform: scale(1.25);
+            box-shadow: 0 4px 14px rgba(200, 75, 49, 0.6);
+        }
+
+        .waveform-seek::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: grab;
+            border: none;
+            box-shadow: 0 2px 6px rgba(200, 75, 49, 0.4);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .waveform-seek::-moz-range-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 3px 10px rgba(200, 75, 49, 0.5);
+        }
+
+        .waveform-seek::-moz-range-thumb:active {
+            cursor: grabbing;
+            transform: scale(1.25);
+        }
+
+        .waveform-seek::-moz-range-track {
+            height: 6px;
+            border-radius: 3px;
+            background: var(--bg-secondary);
+        }
+
+        .waveform-play-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: none;
+            color: white;
+            font-size: 1.4rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 16px rgba(200, 75, 49, 0.3);
+        }
+
+        .waveform-play-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 20px rgba(200, 75, 49, 0.4);
+        }
+
+        .waveform-play-btn:active {
+            transform: scale(0.95);
+        }
+
+        .waveform-time {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+            min-width: 90px;
+            text-align: center;
+        }
+
+        .waveform-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px;
+            color: var(--text-secondary);
+        }
+
+        .waveform-loading .spinner {
+            width: 24px;
+            height: 24px;
+            border-width: 2px;
+        }
+
         .divider {
             display: flex;
             align-items: center;
@@ -840,6 +985,29 @@
                 <div class="romaji-text" id="romajiText"></div>
             </div>
 
+            <div id="waveformPlayer" class="waveform-player hidden">
+                <div class="section-label">Audio</div>
+                <div id="waveformContent">
+                    <div class="waveform-container">
+                        <div id="waveform"></div>
+                    </div>
+                    <div class="waveform-controls">
+                        <span class="waveform-time" id="currentTime">0:00</span>
+                        <button class="waveform-play-btn" id="waveformPlayBtn" title="Play/Pause">
+                            ▶
+                        </button>
+                        <span class="waveform-time" id="totalTime">0:00</span>
+                    </div>
+                    <div class="waveform-seek-container">
+                        <input type="range" class="waveform-seek" id="waveformSeek" min="0" max="100" value="0" step="0.1">
+                    </div>
+                </div>
+                <div id="waveformLoading" class="waveform-loading hidden">
+                    <div class="spinner"></div>
+                    <span>Loading waveform...</span>
+                </div>
+            </div>
+
             <div class="actions">
                 <button class="btn btn-secondary" id="hintBtn">
                     <span class="hint-icon">🔊</span>
@@ -854,13 +1022,15 @@
                 <button class="btn btn-secondary" id="nextBtn">Next Sentence</button>
             </div>
 
-            <audio id="audioPlayer" style="display: none;"></audio>
         </div>
     </div>
 
     <script type="module">
         // Import BudouX for Japanese text segmentation
         import { loadDefaultJapaneseParser } from 'https://cdn.jsdelivr.net/npm/budoux/+esm';
+        // Import WaveSurfer for audio waveform visualization
+        import WaveSurfer from 'https://cdn.jsdelivr.net/npm/wavesurfer.js@7/dist/wavesurfer.esm.js';
+
         const budouxParser = loadDefaultJapaneseParser();
 
         // Dark mode detection
@@ -1015,7 +1185,6 @@
         const nextBtn = document.getElementById('nextBtn');
         const resultArea = document.getElementById('resultArea');
         const hintBtn = document.getElementById('hintBtn');
-        const audioPlayer = document.getElementById('audioPlayer');
         const romajiBtn = document.getElementById('romajiBtn');
         const romajiHint = document.getElementById('romajiHint');
         const romajiText = document.getElementById('romajiText');
@@ -1027,6 +1196,20 @@
         let currentQuizIndex = 0; // Current index in quiz set
         let isQuizMode = false; // Whether we're in quiz mode
         let uploadedImageDataUrl = null; // Store the uploaded image for preview
+
+        // WaveSurfer DOM elements
+        const waveformPlayer = document.getElementById('waveformPlayer');
+        const waveformContent = document.getElementById('waveformContent');
+        const waveformLoading = document.getElementById('waveformLoading');
+        const waveformPlayBtn = document.getElementById('waveformPlayBtn');
+        const currentTimeEl = document.getElementById('currentTime');
+        const totalTimeEl = document.getElementById('totalTime');
+        const waveformSeek = document.getElementById('waveformSeek');
+
+        // WaveSurfer instance
+        let wavesurferInstance = null;
+        let currentLoadedAudioUrl = null; // Track which audio is loaded in wavesurfer
+        let isSeeking = false; // Track if user is currently dragging the seek slider
 
         // Quiz set DOM elements
         const uploadArea = document.getElementById('uploadArea');
@@ -1582,21 +1765,193 @@
             }
         }
 
-        // Play audio from URL (called directly from user click)
-        function playAudio(url) {
-            audioPlayer.src = url;
-            audioPlayer.play();
-            hintBtn.classList.add('playing');
+        // Format time in M:SS format
+        function formatTime(seconds) {
+            if (isNaN(seconds) || seconds < 0) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
 
-            audioPlayer.onended = () => {
-                hintBtn.classList.remove('playing');
-            };
-
-            audioPlayer.onerror = () => {
-                hintBtn.classList.remove('playing');
-                showCustomAlert('Error playing audio');
+        // Get waveform colors based on theme
+        function getWaveformColors() {
+            const isDark = document.documentElement.classList.contains('dark');
+            return {
+                waveColor: isDark ? '#a09a92' : '#6b6560',
+                progressColor: isDark ? '#e07b5f' : '#c84b31',
+                cursorColor: isDark ? '#e07b5f' : '#c84b31'
             };
         }
+
+        // Initialize or update wavesurfer with audio URL
+        function initWavesurfer(url) {
+            // Show the waveform player
+            waveformPlayer.classList.remove('hidden');
+            waveformContent.classList.add('hidden');
+            waveformLoading.classList.remove('hidden');
+
+            // Destroy existing instance if any
+            if (wavesurferInstance) {
+                wavesurferInstance.destroy();
+                wavesurferInstance = null;
+            }
+
+            const colors = getWaveformColors();
+
+            // Create new WaveSurfer instance
+            wavesurferInstance = WaveSurfer.create({
+                container: '#waveform',
+                waveColor: colors.waveColor,
+                progressColor: colors.progressColor,
+                cursorColor: colors.cursorColor,
+                cursorWidth: 2,
+                barWidth: 3,
+                barGap: 2,
+                barRadius: 3,
+                height: 80,
+                responsive: true,
+                normalize: true,
+                dragToSeek: true // Enable drag-to-seek on the waveform itself
+            });
+
+            // Load the audio
+            wavesurferInstance.load(url);
+            currentLoadedAudioUrl = url;
+
+            // Reset seek slider
+            waveformSeek.value = 0;
+
+            // Event: Ready
+            wavesurferInstance.on('ready', () => {
+                waveformLoading.classList.add('hidden');
+                waveformContent.classList.remove('hidden');
+                totalTimeEl.textContent = formatTime(wavesurferInstance.getDuration());
+                currentTimeEl.textContent = '0:00';
+                waveformPlayBtn.textContent = '▶';
+                waveformSeek.value = 0;
+            });
+
+            // Event: Time update
+            wavesurferInstance.on('audioprocess', () => {
+                currentTimeEl.textContent = formatTime(wavesurferInstance.getCurrentTime());
+                // Update seek slider position if user is not dragging
+                if (!isSeeking) {
+                    const progress = (wavesurferInstance.getCurrentTime() / wavesurferInstance.getDuration()) * 100;
+                    waveformSeek.value = progress || 0;
+                }
+            });
+
+            // Event: Seeking (when user clicks/drags on waveform)
+            wavesurferInstance.on('seeking', () => {
+                currentTimeEl.textContent = formatTime(wavesurferInstance.getCurrentTime());
+                // Update seek slider position
+                if (!isSeeking) {
+                    const progress = (wavesurferInstance.getCurrentTime() / wavesurferInstance.getDuration()) * 100;
+                    waveformSeek.value = progress || 0;
+                }
+            });
+
+            // Event: Interaction (covers drag interactions)
+            wavesurferInstance.on('interaction', () => {
+                currentTimeEl.textContent = formatTime(wavesurferInstance.getCurrentTime());
+                if (!isSeeking) {
+                    const progress = (wavesurferInstance.getCurrentTime() / wavesurferInstance.getDuration()) * 100;
+                    waveformSeek.value = progress || 0;
+                }
+            });
+
+            // Event: Play
+            wavesurferInstance.on('play', () => {
+                waveformPlayBtn.textContent = '⏸';
+                hintBtn.classList.add('playing');
+            });
+
+            // Event: Pause
+            wavesurferInstance.on('pause', () => {
+                waveformPlayBtn.textContent = '▶';
+                hintBtn.classList.remove('playing');
+            });
+
+            // Event: Finish
+            wavesurferInstance.on('finish', () => {
+                waveformPlayBtn.textContent = '▶';
+                hintBtn.classList.remove('playing');
+                currentTimeEl.textContent = formatTime(wavesurferInstance.getDuration());
+            });
+
+            // Event: Error
+            wavesurferInstance.on('error', (err) => {
+                waveformLoading.classList.add('hidden');
+                waveformContent.classList.remove('hidden');
+                showCustomAlert('Error loading audio: ' + err);
+            });
+        }
+
+        // Play/pause wavesurfer
+        function toggleWavesurferPlayback() {
+            if (wavesurferInstance) {
+                wavesurferInstance.playPause();
+            }
+        }
+
+        // Hide waveform player
+        function hideWaveformPlayer() {
+            waveformPlayer.classList.add('hidden');
+            if (wavesurferInstance) {
+                wavesurferInstance.pause();
+            }
+        }
+
+        // Update waveform colors when theme changes
+        function updateWaveformColors() {
+            if (wavesurferInstance) {
+                const colors = getWaveformColors();
+                wavesurferInstance.setOptions({
+                    waveColor: colors.waveColor,
+                    progressColor: colors.progressColor,
+                    cursorColor: colors.cursorColor
+                });
+            }
+        }
+
+        // Listen for theme changes to update waveform colors
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            updateWaveformColors();
+        });
+
+        // Waveform play button click handler
+        waveformPlayBtn.addEventListener('click', toggleWavesurferPlayback);
+
+        // Seek slider event handlers for precise position control
+        waveformSeek.addEventListener('mousedown', () => {
+            isSeeking = true;
+        });
+
+        waveformSeek.addEventListener('touchstart', () => {
+            isSeeking = true;
+        }, { passive: true });
+
+        waveformSeek.addEventListener('input', () => {
+            if (wavesurferInstance) {
+                const duration = wavesurferInstance.getDuration();
+                const seekTime = (waveformSeek.value / 100) * duration;
+                currentTimeEl.textContent = formatTime(seekTime);
+                // Sync waveform position in real-time while dragging
+                wavesurferInstance.seekTo(waveformSeek.value / 100);
+            }
+        });
+
+        waveformSeek.addEventListener('change', () => {
+            isSeeking = false;
+        });
+
+        waveformSeek.addEventListener('mouseup', () => {
+            isSeeking = false;
+        });
+
+        waveformSeek.addEventListener('touchend', () => {
+            isSeeking = false;
+        }, { passive: true });
 
         // Extract audio URL from markdown response
         function extractAudioUrl(content) {
@@ -1625,9 +1980,20 @@
         async function requestTTS() {
             if (!currentSentence) return;
 
-            // If audio is cached, play it directly (this is a user gesture)
+            // If audio is cached, load/play it with wavesurfer
             if (audioCache[currentSentence]) {
-                playAudio(audioCache[currentSentence]);
+                const cachedUrl = audioCache[currentSentence];
+                // If same audio is already loaded, just toggle playback
+                if (currentLoadedAudioUrl === cachedUrl && wavesurferInstance) {
+                    toggleWavesurferPlayback();
+                } else {
+                    // Load into wavesurfer and auto-play when ready
+                    initWavesurfer(cachedUrl);
+                    // Auto-play when ready
+                    wavesurferInstance.once('ready', () => {
+                        wavesurferInstance.play();
+                    });
+                }
                 return;
             }
 
@@ -1663,6 +2029,8 @@
                     hintBtn.querySelector('.hint-text').textContent = 'Listen';
                     // Save state with new cache
                     saveState();
+                    // Initialize wavesurfer with the new audio
+                    initWavesurfer(audioUrl);
                 } else {
                     hintBtn.querySelector('.hint-text').textContent = 'Generate TTS';
                     showCustomAlert('No audio was generated. Response: ' + content.substring(0, 100));
@@ -1678,8 +2046,26 @@
         function updateTTSButtonState() {
             if (audioCache[currentSentence]) {
                 hintBtn.querySelector('.hint-text').textContent = 'Listen';
+                // If audio is cached, show the waveform player (pre-loaded)
+                if (currentLoadedAudioUrl !== audioCache[currentSentence]) {
+                    initWavesurfer(audioCache[currentSentence]);
+                }
             } else {
                 hintBtn.querySelector('.hint-text').textContent = 'Generate TTS';
+                // Hide waveform player if no cached audio
+                hideWaveformPlayer();
+            }
+        }
+
+        // Reset waveform player for new sentence
+        function resetWaveformPlayer() {
+            hideWaveformPlayer();
+            currentLoadedAudioUrl = null;
+            waveformSeek.value = 0;
+            isSeeking = false;
+            if (wavesurferInstance) {
+                wavesurferInstance.destroy();
+                wavesurferInstance = null;
             }
         }
 
@@ -1694,6 +2080,7 @@
             answerSegments = [];
             resultArea.innerHTML = '';
             romajiHint.classList.add('hidden'); // Hide romaji when starting new sentence
+            resetWaveformPlayer(); // Reset waveform player for new sentence
             updateTTSButtonState(); // Update TTS button based on cache
 
             // Segment using BudouX (instant, no API call needed)
@@ -2008,5 +2395,6 @@
     </script>
 </body>
 </html>
+
 
 
