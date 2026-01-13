@@ -283,6 +283,17 @@
             transform: none;
         }
 
+        .btn-primary.correct {
+            background: var(--success);
+            box-shadow: 0 4px 16px rgba(74, 156, 109, 0.3);
+        }
+
+        .btn-primary.incorrect {
+            background: var(--error);
+            box-shadow: 0 4px 16px rgba(200, 75, 49, 0.3);
+            animation: shake 0.4s ease-out;
+        }
+
         .btn-secondary {
             background: var(--bg-secondary);
             color: var(--text-primary);
@@ -365,73 +376,6 @@
             align-items: center;
             justify-content: center;
             gap: 16px;
-        }
-
-        .waveform-seek-container {
-            margin-top: 12px;
-            padding: 0 4px;
-        }
-
-        .waveform-seek {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 100%;
-            height: 6px;
-            border-radius: 3px;
-            background: var(--bg-secondary);
-            outline: none;
-            cursor: pointer;
-            transition: background 0.2s ease;
-        }
-
-        .waveform-seek::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: var(--accent);
-            cursor: grab;
-            box-shadow: 0 2px 6px rgba(200, 75, 49, 0.4);
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-        }
-
-        .waveform-seek::-webkit-slider-thumb:hover {
-            transform: scale(1.15);
-            box-shadow: 0 3px 10px rgba(200, 75, 49, 0.5);
-        }
-
-        .waveform-seek::-webkit-slider-thumb:active {
-            cursor: grabbing;
-            transform: scale(1.25);
-            box-shadow: 0 4px 14px rgba(200, 75, 49, 0.6);
-        }
-
-        .waveform-seek::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: var(--accent);
-            cursor: grab;
-            border: none;
-            box-shadow: 0 2px 6px rgba(200, 75, 49, 0.4);
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-        }
-
-        .waveform-seek::-moz-range-thumb:hover {
-            transform: scale(1.15);
-            box-shadow: 0 3px 10px rgba(200, 75, 49, 0.5);
-        }
-
-        .waveform-seek::-moz-range-thumb:active {
-            cursor: grabbing;
-            transform: scale(1.25);
-        }
-
-        .waveform-seek::-moz-range-track {
-            height: 6px;
-            border-radius: 3px;
-            background: var(--bg-secondary);
         }
 
         .waveform-play-btn {
@@ -641,28 +585,9 @@
             font-size: 0.95rem;
         }
 
-        .result-message {
-            text-align: center;
-            padding: 16px;
-            border-radius: 12px;
-            margin-top: 16px;
-            font-weight: 500;
-            animation: fadeIn 0.3s ease-out;
-        }
-
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
-        }
-
-        .result-message.success {
-            background: rgba(74, 156, 109, 0.15);
-            color: var(--success);
-        }
-
-        .result-message.error {
-            background: rgba(200, 75, 49, 0.15);
-            color: var(--error);
         }
 
         .original-sentence {
@@ -848,6 +773,13 @@
             display: none !important;
         }
 
+        /* Sticky answer section */
+        .answer-card {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
         @media (max-width: 480px) {
             .container {
                 padding: 16px;
@@ -967,12 +899,11 @@
                 <div class="translation-box" id="translationDisplay"></div>
             </div>
 
-            <div class="game-card">
+            <div class="game-card answer-card" id="answerCard">
                 <div class="section-label">Your Answer</div>
                 <div class="answer-zone" id="answerZone">
                     <span class="placeholder-text">Click or drag segments here to build the sentence</span>
                 </div>
-                <div id="resultArea"></div>
             </div>
 
             <div class="game-card">
@@ -997,9 +928,6 @@
                             ▶
                         </button>
                         <span class="waveform-time" id="totalTime">0:00</span>
-                    </div>
-                    <div class="waveform-seek-container">
-                        <input type="range" class="waveform-seek" id="waveformSeek" min="0" max="100" value="0" step="0.1">
                     </div>
                 </div>
                 <div id="waveformLoading" class="waveform-loading hidden">
@@ -1183,7 +1111,6 @@
         const clearBtn = document.getElementById('clearBtn');
         const checkBtn = document.getElementById('checkBtn');
         const nextBtn = document.getElementById('nextBtn');
-        const resultArea = document.getElementById('resultArea');
         const hintBtn = document.getElementById('hintBtn');
         const romajiBtn = document.getElementById('romajiBtn');
         const romajiHint = document.getElementById('romajiHint');
@@ -1204,12 +1131,10 @@
         const waveformPlayBtn = document.getElementById('waveformPlayBtn');
         const currentTimeEl = document.getElementById('currentTime');
         const totalTimeEl = document.getElementById('totalTime');
-        const waveformSeek = document.getElementById('waveformSeek');
 
         // WaveSurfer instance
         let wavesurferInstance = null;
         let currentLoadedAudioUrl = null; // Track which audio is loaded in wavesurfer
-        let isSeeking = false; // Track if user is currently dragging the seek slider
 
         // Quiz set DOM elements
         const uploadArea = document.getElementById('uploadArea');
@@ -1391,7 +1316,7 @@
                 }
                 renderSegmentsPool();
                 renderAnswerZone();
-                resultArea.innerHTML = '';
+                resetCheckButton();
                 saveState();
             });
 
@@ -1475,7 +1400,7 @@
 
                         renderSegmentsPool();
                         renderAnswerZone();
-                        resultArea.innerHTML = '';
+                        resetCheckButton();
                         saveState();
                     } catch (err) {
                         // Ignore invalid data
@@ -1508,7 +1433,7 @@
                     answerSegments.push(data.index);
                     renderSegmentsPool();
                     renderAnswerZone();
-                    resultArea.innerHTML = '';
+                    resetCheckButton();
                     saveState();
                 }
             } catch (err) {
@@ -1818,9 +1743,6 @@
             wavesurferInstance.load(url);
             currentLoadedAudioUrl = url;
 
-            // Reset seek slider
-            waveformSeek.value = 0;
-
             // Event: Ready
             wavesurferInstance.on('ready', () => {
                 waveformLoading.classList.add('hidden');
@@ -1828,36 +1750,21 @@
                 totalTimeEl.textContent = formatTime(wavesurferInstance.getDuration());
                 currentTimeEl.textContent = '0:00';
                 waveformPlayBtn.textContent = '▶';
-                waveformSeek.value = 0;
             });
 
             // Event: Time update
             wavesurferInstance.on('audioprocess', () => {
                 currentTimeEl.textContent = formatTime(wavesurferInstance.getCurrentTime());
-                // Update seek slider position if user is not dragging
-                if (!isSeeking) {
-                    const progress = (wavesurferInstance.getCurrentTime() / wavesurferInstance.getDuration()) * 100;
-                    waveformSeek.value = progress || 0;
-                }
             });
 
             // Event: Seeking (when user clicks/drags on waveform)
             wavesurferInstance.on('seeking', () => {
                 currentTimeEl.textContent = formatTime(wavesurferInstance.getCurrentTime());
-                // Update seek slider position
-                if (!isSeeking) {
-                    const progress = (wavesurferInstance.getCurrentTime() / wavesurferInstance.getDuration()) * 100;
-                    waveformSeek.value = progress || 0;
-                }
             });
 
             // Event: Interaction (covers drag interactions)
             wavesurferInstance.on('interaction', () => {
                 currentTimeEl.textContent = formatTime(wavesurferInstance.getCurrentTime());
-                if (!isSeeking) {
-                    const progress = (wavesurferInstance.getCurrentTime() / wavesurferInstance.getDuration()) * 100;
-                    waveformSeek.value = progress || 0;
-                }
             });
 
             // Event: Play
@@ -1922,35 +1829,39 @@
         // Waveform play button click handler
         waveformPlayBtn.addEventListener('click', toggleWavesurferPlayback);
 
-        // Seek slider event handlers for precise position control
-        waveformSeek.addEventListener('mousedown', () => {
-            isSeeking = true;
-        });
+        // Mobile touch seeking for waveform
+        const waveformContainer = document.querySelector('#waveform');
+        let isTouchSeeking = false;
 
-        waveformSeek.addEventListener('touchstart', () => {
-            isSeeking = true;
+        function handleWaveformTouch(e) {
+            if (!wavesurferInstance) return;
+
+            const touch = e.touches[0];
+            const rect = waveformContainer.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const progress = Math.max(0, Math.min(1, x / rect.width));
+
+            wavesurferInstance.seekTo(progress);
+            currentTimeEl.textContent = formatTime(wavesurferInstance.getCurrentTime());
+        }
+
+        waveformContainer.addEventListener('touchstart', (e) => {
+            if (!wavesurferInstance) return;
+            isTouchSeeking = true;
+            handleWaveformTouch(e);
         }, { passive: true });
 
-        waveformSeek.addEventListener('input', () => {
-            if (wavesurferInstance) {
-                const duration = wavesurferInstance.getDuration();
-                const seekTime = (waveformSeek.value / 100) * duration;
-                currentTimeEl.textContent = formatTime(seekTime);
-                // Sync waveform position in real-time while dragging
-                wavesurferInstance.seekTo(waveformSeek.value / 100);
-            }
-        });
+        waveformContainer.addEventListener('touchmove', (e) => {
+            if (!isTouchSeeking || !wavesurferInstance) return;
+            handleWaveformTouch(e);
+        }, { passive: true });
 
-        waveformSeek.addEventListener('change', () => {
-            isSeeking = false;
-        });
+        waveformContainer.addEventListener('touchend', () => {
+            isTouchSeeking = false;
+        }, { passive: true });
 
-        waveformSeek.addEventListener('mouseup', () => {
-            isSeeking = false;
-        });
-
-        waveformSeek.addEventListener('touchend', () => {
-            isSeeking = false;
+        waveformContainer.addEventListener('touchcancel', () => {
+            isTouchSeeking = false;
         }, { passive: true });
 
         // Extract audio URL from markdown response
@@ -2061,8 +1972,6 @@
         function resetWaveformPlayer() {
             hideWaveformPlayer();
             currentLoadedAudioUrl = null;
-            waveformSeek.value = 0;
-            isSeeking = false;
             if (wavesurferInstance) {
                 wavesurferInstance.destroy();
                 wavesurferInstance = null;
@@ -2078,7 +1987,7 @@
 
             currentSentence = sentence.trim();
             answerSegments = [];
-            resultArea.innerHTML = '';
+            resetCheckButton(); // Reset check button for new sentence
             romajiHint.classList.add('hidden'); // Hide romaji when starting new sentence
             resetWaveformPlayer(); // Reset waveform player for new sentence
             updateTTSButtonState(); // Update TTS button based on cache
@@ -2136,6 +2045,12 @@
             return segmentJapanese(currentSentence);
         }
 
+        // Reset check button to default state
+        function resetCheckButton() {
+            checkBtn.classList.remove('correct', 'incorrect');
+            checkBtn.textContent = 'Check Answer';
+        }
+
         // Check answer and highlight wrong positions
         function checkAnswer() {
             const userAnswer = answerSegments.map(i => currentSegments[i]).join('');
@@ -2143,6 +2058,9 @@
 
             totalCount++;
             document.getElementById('totalCount').textContent = totalCount;
+
+            // Reset button state first
+            resetCheckButton();
 
             if (correct) {
                 correctCount++;
@@ -2154,11 +2072,9 @@
                 // Mark all segments as correct
                 highlightSegmentPositions(true);
 
-                resultArea.innerHTML = `
-                    <div class="result-message success">
-                        🎉 Correct! Great job!
-                    </div>
-                `;
+                // Show result in button
+                checkBtn.classList.add('correct');
+                checkBtn.textContent = '🎉 Correct!';
             } else {
                 streakCount = 0;
                 document.getElementById('streakCount').textContent = streakCount;
@@ -2167,11 +2083,9 @@
                 // Highlight which segments are in wrong positions
                 highlightSegmentPositions(false);
 
-                resultArea.innerHTML = `
-                    <div class="result-message error">
-                        Not quite right. Check the highlighted segments!
-                    </div>
-                `;
+                // Show result in button
+                checkBtn.classList.add('incorrect');
+                checkBtn.textContent = '✗ Try Again';
             }
 
             // Save state after checking answer
@@ -2201,7 +2115,7 @@
         // Clear answer
         function clearAnswer() {
             answerSegments = [];
-            resultArea.innerHTML = '';
+            resetCheckButton();
             renderSegmentsPool();
             renderAnswerZone();
             saveState();
