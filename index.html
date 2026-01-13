@@ -773,6 +773,117 @@
             display: none !important;
         }
 
+        /* TTS Provider toggle */
+        .tts-provider-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .tts-toggle-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .tts-toggle-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: 2px solid var(--border);
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .tts-toggle-btn:hover {
+            border-color: var(--accent);
+        }
+
+        .tts-toggle-btn.active {
+            border-color: var(--accent);
+            background: rgba(200, 75, 49, 0.1);
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .tts-toggle-btn .provider-name {
+            display: block;
+            font-weight: 500;
+        }
+
+        .tts-toggle-btn .provider-voice {
+            display: block;
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 2px;
+        }
+
+        .voicevox-key-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed var(--border);
+        }
+
+        .tts-speed-section {
+            margin-top: 12px;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .speed-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: var(--bg-secondary);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .speed-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.15s ease;
+        }
+
+        .speed-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        .speed-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .speed-value {
+            min-width: 48px;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
         /* Sticky answer section */
         .answer-card {
             position: sticky;
@@ -835,6 +946,38 @@
                     <span id="apiKeyStatus" class="api-key-status disconnected">Not set</span>
                 </div>
                 <a href="https://poe.com/api_key" target="_blank" class="api-key-link">Get your API key at poe.com/api_key →</a>
+
+                <div class="tts-provider-section">
+                    <div class="section-label">TTS Provider</div>
+                    <div class="tts-toggle-group">
+                        <button class="tts-toggle-btn active" id="ttsPoe" data-provider="poe">
+                            <span class="provider-name">Poe API</span>
+                            <span class="provider-voice">Hailuo Speech</span>
+                        </button>
+                        <button class="tts-toggle-btn" id="ttsVoicevox" data-provider="voicevox">
+                            <span class="provider-name">VOICEVOX</span>
+                            <span class="provider-voice">四国めたん</span>
+                        </button>
+                    </div>
+                    <div id="voicevoxKeySection" class="voicevox-key-section hidden">
+                        <div class="section-label">VOICEVOX API Key</div>
+                        <div class="api-key-wrapper">
+                            <input type="password" id="voicevoxApiKeyInput" class="api-key-input"
+                                   placeholder="Enter VOICEVOX API key..." >
+                            <span id="voicevoxKeyStatus" class="api-key-status disconnected">Not set</span>
+                        </div>
+                        <a href="https://voicevox.su-shiki.com/su-shikiapis/" target="_blank" class="api-key-link">Get your VOICEVOX API key →</a>
+                    </div>
+                    <div class="tts-speed-section">
+                        <div class="section-label">Speech Speed</div>
+                        <div class="speed-control">
+                            <span style="font-size: 0.8rem; color: var(--text-secondary);">Slow</span>
+                            <input type="range" id="speedSlider" class="speed-slider" min="0.5" max="2.0" step="0.1" value="0.8">
+                            <span style="font-size: 0.8rem; color: var(--text-secondary);">Fast</span>
+                            <span class="speed-value" id="speedValue">0.8x</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="section-label">Enter Japanese Sentence</div>
@@ -977,6 +1120,80 @@
         const POE_API_BASE = 'https://api.poe.com/v1';
         let poeApiKey = '';
 
+        // TTS Provider configuration
+        let ttsProvider = 'poe'; // 'poe' or 'voicevox'
+        let ttsSpeed = 0.8; // Speech speed (0.5 - 2.0)
+        let voicevoxApiKey = '';
+        const VOICEVOX_API_BASE = 'https://deprecatedapis.tts.quest/v2/voicevox/audio/';
+        const VOICEVOX_SPEAKER_ID = 2; // 四国めたん (ノーマル)
+
+        // TTS Provider toggle
+        const ttsPoeBtn = document.getElementById('ttsPoe');
+        const ttsVoicevoxBtn = document.getElementById('ttsVoicevox');
+
+        // VOICEVOX API Key management
+        const voicevoxKeySection = document.getElementById('voicevoxKeySection');
+        const voicevoxApiKeyInput = document.getElementById('voicevoxApiKeyInput');
+        const voicevoxKeyStatus = document.getElementById('voicevoxKeyStatus');
+
+        function updateVoicevoxKeyStatus() {
+            voicevoxApiKey = voicevoxApiKeyInput.value.trim();
+            if (voicevoxApiKey) {
+                voicevoxKeyStatus.textContent = 'Ready';
+                voicevoxKeyStatus.classList.remove('disconnected');
+                voicevoxKeyStatus.classList.add('connected');
+            } else {
+                voicevoxKeyStatus.textContent = 'Not set';
+                voicevoxKeyStatus.classList.remove('connected');
+                voicevoxKeyStatus.classList.add('disconnected');
+            }
+        }
+
+        voicevoxApiKeyInput.addEventListener('input', () => {
+            updateVoicevoxKeyStatus();
+            saveState();
+        });
+
+        function setTtsProvider(provider) {
+            ttsProvider = provider;
+            ttsPoeBtn.classList.toggle('active', provider === 'poe');
+            ttsVoicevoxBtn.classList.toggle('active', provider === 'voicevox');
+            // Show/hide VOICEVOX API key section
+            voicevoxKeySection.classList.toggle('hidden', provider !== 'voicevox');
+            // Clear audio cache when switching providers
+            audioCache = {};
+            updateTTSButtonState();
+            saveState();
+        }
+
+        ttsPoeBtn.addEventListener('click', () => setTtsProvider('poe'));
+        ttsVoicevoxBtn.addEventListener('click', () => setTtsProvider('voicevox'));
+
+        // Speed slider
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValue = document.getElementById('speedValue');
+
+        function setTtsSpeed(speed) {
+            ttsSpeed = speed;
+            speedSlider.value = speed;
+            speedValue.textContent = speed + 'x';
+            // Clear audio cache when speed changes (audio needs regeneration)
+            audioCache = {};
+            updateTTSButtonState();
+            saveState();
+        }
+
+        speedSlider.addEventListener('input', () => {
+            const speed = parseFloat(speedSlider.value);
+            ttsSpeed = speed;
+            speedValue.textContent = speed.toFixed(1) + 'x';
+        });
+
+        speedSlider.addEventListener('change', () => {
+            const speed = parseFloat(speedSlider.value);
+            setTtsSpeed(speed);
+        });
+
         // API Key management
         const apiKeyInput = document.getElementById('apiKeyInput');
         const apiKeyStatus = document.getElementById('apiKeyStatus');
@@ -1046,6 +1263,9 @@
         function saveState() {
             const state = {
                 apiKey: poeApiKey,
+                voicevoxApiKey,
+                ttsProvider,
+                ttsSpeed,
                 currentSentence,
                 currentSegments,
                 answerSegments,
@@ -1158,6 +1378,28 @@
                 poeApiKey = saved.apiKey;
                 apiKeyInput.value = saved.apiKey;
                 updateApiKeyStatus();
+            }
+
+            // Restore VOICEVOX API key
+            if (saved.voicevoxApiKey) {
+                voicevoxApiKey = saved.voicevoxApiKey;
+                voicevoxApiKeyInput.value = saved.voicevoxApiKey;
+                updateVoicevoxKeyStatus();
+            }
+
+            // Restore TTS provider
+            if (saved.ttsProvider) {
+                ttsProvider = saved.ttsProvider;
+                ttsPoeBtn.classList.toggle('active', ttsProvider === 'poe');
+                ttsVoicevoxBtn.classList.toggle('active', ttsProvider === 'voicevox');
+                voicevoxKeySection.classList.toggle('hidden', ttsProvider !== 'voicevox');
+            }
+
+            // Restore TTS speed
+            if (typeof saved.ttsSpeed === 'number') {
+                ttsSpeed = saved.ttsSpeed;
+                speedSlider.value = ttsSpeed;
+                speedValue.textContent = ttsSpeed.toFixed(1) + 'x';
             }
 
             // Restore caches
@@ -1887,6 +2129,75 @@
             return null;
         }
 
+        // Request TTS using VOICEVOX API (v2 High-Speed API)
+        async function requestVoicevoxTTS() {
+            if (!voicevoxApiKey) {
+                throw new Error('Please enter your VOICEVOX API key first');
+            }
+
+            // Construct URL with query parameters
+            const params = new URLSearchParams({
+                key: voicevoxApiKey,
+                speaker: VOICEVOX_SPEAKER_ID.toString(),
+                text: currentSentence,
+                speed: ttsSpeed.toString(),
+                pitch: '0',
+                intonationScale: '1'
+            });
+
+            const requestUrl = `${VOICEVOX_API_BASE}?${params.toString()}`;
+            const response = await fetch(requestUrl);
+
+            // Check for errors - v2 API returns JSON on error
+            const contentType = response.headers.get('content-type');
+
+            if (!response.ok || (contentType && contentType.includes('application/json'))) {
+                const errorText = await response.text();
+
+                // Map API error codes to user-friendly messages
+                if (errorText.includes('invalidApiKey')) {
+                    throw new Error('Invalid VOICEVOX API key');
+                } else if (errorText.includes('notEnoughPoints')) {
+                    throw new Error('Not enough VOICEVOX API points');
+                } else if (errorText.includes('failed')) {
+                    throw new Error('VOICEVOX synthesis failed');
+                } else {
+                    throw new Error(`VOICEVOX API error: ${errorText.substring(0, 100)}`);
+                }
+            }
+
+            // If successful, we get an audio blob directly
+            const blob = await response.blob();
+            const audioUrl = URL.createObjectURL(blob);
+            return audioUrl;
+        }
+
+        // Request TTS using Poe API
+        async function requestPoeTTS() {
+            const response = await callPoeAPI('Hailuo-Speech-02', [
+                {
+                    role: 'user',
+                    content: currentSentence
+                }
+            ], {
+                extra_body: {
+                    language: 'Japanese',
+                    voice: 'Calm_Woman',
+                    speed: ttsSpeed,
+                    pitch: 1
+                }
+            });
+
+            const content = response.choices[0]?.message?.content || '';
+            const audioUrl = extractAudioUrl(content);
+
+            if (!audioUrl) {
+                throw new Error('No audio was generated. Response: ' + content.substring(0, 100));
+            }
+
+            return audioUrl;
+        }
+
         // Request TTS for current sentence
         async function requestTTS() {
             if (!currentSentence) return;
@@ -1913,39 +2224,24 @@
             hintBtn.querySelector('.hint-text').textContent = 'Generating...';
 
             try {
-                // Call Hailuo-Speech-02 via OpenAI Compatible API
-                const response = await callPoeAPI('Hailuo-Speech-02', [
-                    {
-                        role: 'user',
-                        content: currentSentence
-                    }
-                ], {
-                    extra_body: {
-                        language: 'Japanese',
-                        voice: 'Calm_Woman',
-                        speed: 0.7,
-                        pitch: 1
-                    }
-                });
+                let audioUrl;
 
-                const content = response.choices[0]?.message?.content || '';
-                const audioUrl = extractAudioUrl(content);
+                if (ttsProvider === 'voicevox') {
+                    audioUrl = await requestVoicevoxTTS();
+                } else {
+                    audioUrl = await requestPoeTTS();
+                }
 
                 hintBtn.classList.remove('loading-audio');
 
-                if (audioUrl) {
-                    // Cache the audio URL
-                    audioCache[currentSentence] = audioUrl;
-                    // Update button to show "Listen" (ready to play)
-                    hintBtn.querySelector('.hint-text').textContent = 'Listen';
-                    // Save state with new cache
-                    saveState();
-                    // Initialize wavesurfer with the new audio
-                    initWavesurfer(audioUrl);
-                } else {
-                    hintBtn.querySelector('.hint-text').textContent = 'Generate TTS';
-                    showCustomAlert('No audio was generated. Response: ' + content.substring(0, 100));
-                }
+                // Cache the audio URL
+                audioCache[currentSentence] = audioUrl;
+                // Update button to show "Listen" (ready to play)
+                hintBtn.querySelector('.hint-text').textContent = 'Listen';
+                // Save state with new cache
+                saveState();
+                // Initialize wavesurfer with the new audio
+                initWavesurfer(audioUrl);
             } catch (err) {
                 hintBtn.classList.remove('loading-audio');
                 hintBtn.querySelector('.hint-text').textContent = 'Generate TTS';
@@ -2309,6 +2605,3 @@
     </script>
 </body>
 </html>
-
-
-
