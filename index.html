@@ -176,6 +176,39 @@
             background: rgba(200, 75, 49, 0.1);
         }
 
+        .answer-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .answer-actions .btn {
+            flex: 1;
+        }
+
+        .btn.next-mode {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .btn.next-mode:hover {
+            background: #3d8a62;
+            border-color: #3d8a62;
+        }
+
+        .btn.next-mode .next-arrow {
+            font-size: 1.1rem;
+            transition: transform 0.2s ease;
+        }
+
+        .btn.next-mode:hover .next-arrow {
+            transform: translateX(4px);
+        }
+
         .placeholder-text {
             color: var(--text-secondary);
             font-size: 0.9rem;
@@ -304,58 +337,269 @@
             border-color: var(--accent);
         }
 
-        .btn.loading-audio {
-            pointer-events: none;
-            opacity: 0.7;
-        }
-
-        .btn.loading-audio .hint-icon {
-            animation: pulse 1s ease-in-out infinite;
-        }
-
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.4; }
         }
 
-        .btn.playing .hint-icon {
-            animation: soundWave 0.5s ease-in-out infinite;
-        }
-
-        @keyframes soundWave {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-        }
-
-        .romaji-hint {
+        /* Hint section with tabs */
+        .hint-section {
             background: var(--bg-card);
             border-radius: 14px;
-            padding: 16px 20px;
             margin-bottom: 16px;
             border: 1px solid var(--border);
             animation: fadeIn 0.3s ease-out;
+            overflow: hidden;
         }
 
-        .romaji-text {
+        .hint-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hint-tab {
+            flex: 1;
+            padding: 14px 16px;
+            background: transparent;
+            border: none;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+        }
+
+        .hint-tab:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .hint-tab.active {
+            color: var(--accent);
+            background: var(--bg-secondary);
+        }
+
+        .hint-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent);
+        }
+
+        .hint-tab-icon {
+            font-size: 1.1rem;
+        }
+
+        .hint-tab-content {
+            padding: 20px;
+        }
+
+        .hint-tab-panel {
+            display: none;
+        }
+
+        .hint-tab-panel.active {
+            display: block;
+        }
+
+        .hint-generate-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 14px 20px;
+            font-size: 1rem;
+            font-family: inherit;
+            font-weight: 500;
+            border: 2px dashed var(--border);
+            border-radius: 10px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .hint-generate-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(200, 75, 49, 0.05);
+        }
+
+        .hint-generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .hint-generate-btn.loading {
+            pointer-events: none;
+        }
+
+        .hint-generate-btn.loading .hint-gen-icon {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        .romaji-display {
             font-size: 1.15rem;
             text-align: center;
             color: var(--text-primary);
             font-style: italic;
             letter-spacing: 0.5px;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
         }
 
-        .romaji-text.loading {
+        .romaji-display.loading {
             color: var(--text-secondary);
         }
 
-        /* Waveform player styles */
-        .waveform-player {
-            background: var(--bg-card);
-            border-radius: 14px;
-            padding: 20px;
-            margin-bottom: 16px;
-            border: 1px solid var(--border);
+        /* Example drop zone styles */
+        .example-drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 24px 16px;
+            text-align: center;
+            transition: all 0.2s ease;
+            background: var(--bg-secondary);
+        }
+
+        .example-drop-zone.drag-over {
+            border-color: var(--accent);
+            background: rgba(200, 75, 49, 0.1);
+            transform: scale(1.02);
+        }
+
+        .drop-zone-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .drop-zone-text {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .drop-zone-hint {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .example-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 24px;
+            color: var(--text-secondary);
+        }
+
+        .example-loading .spinner {
+            width: 24px;
+            height: 24px;
+            border-width: 2px;
+        }
+
+        .example-content {
             animation: fadeIn 0.3s ease-out;
+        }
+
+        .example-word {
+            display: inline-block;
+            font-size: 1.3rem;
+            font-weight: 600;
+            padding: 10px 18px;
+            background: var(--accent);
+            color: white;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .example-word .example-romaji {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.85);
+            margin-top: 4px;
+            font-weight: 400;
+        }
+
+        .example-sentences {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .example-item {
+            padding: 14px 16px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .example-jp {
+            font-size: 1.1rem;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+
+        .example-zh {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .example-romaji {
+            font-size: 0.9rem;
+            color: var(--accent);
+            font-style: italic;
+            margin-top: 4px;
+            letter-spacing: 0.3px;
+        }
+
+        .example-reset-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+            padding: 10px;
+            margin-top: 12px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .example-reset-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .hint-tab-panel.drag-over {
+            background: rgba(200, 75, 49, 0.05);
+        }
+
+        .hint-tab-panel.drag-over .example-content {
+            opacity: 0.6;
+        }
+
+        /* Waveform player styles */
+        .waveform-player-inline {
+            width: 100%;
         }
 
         .waveform-container {
@@ -520,14 +764,6 @@
         .quiz-exit {
             width: 100%;
             margin-top: 8px;
-        }
-
-        .actions {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 20px;
         }
 
         .score-display {
@@ -1047,6 +1283,10 @@
                 <div class="answer-zone" id="answerZone">
                     <span class="placeholder-text">Click or drag segments here to build the sentence</span>
                 </div>
+                <div class="answer-actions">
+                    <button class="btn btn-secondary" id="clearBtn">Clear</button>
+                    <button class="btn btn-primary" id="checkBtn">Check Answer</button>
+                </div>
             </div>
 
             <div class="game-card">
@@ -1054,43 +1294,78 @@
                 <div class="segments-pool" id="segmentsPool"></div>
             </div>
 
-            <div id="romajiHint" class="romaji-hint hidden">
-                <div class="section-label">Romaji</div>
-                <div class="romaji-text" id="romajiText"></div>
-            </div>
-
-            <div id="waveformPlayer" class="waveform-player hidden">
-                <div class="section-label">Audio</div>
-                <div id="waveformContent">
-                    <div class="waveform-container">
-                        <div id="waveform"></div>
+            <div id="hintSection" class="hint-section">
+                <div class="hint-tabs">
+                    <button class="hint-tab active" id="audioTab" data-tab="audio">
+                        <span class="hint-tab-icon">🔊</span>
+                        <span>Voice</span>
+                    </button>
+                    <button class="hint-tab" id="romajiTab" data-tab="romaji">
+                        <span class="hint-tab-icon">Aa</span>
+                        <span>Romaji</span>
+                    </button>
+                    <button class="hint-tab" id="exampleTab" data-tab="example">
+                        <span class="hint-tab-icon">📚</span>
+                        <span>Examples</span>
+                    </button>
+                </div>
+                <div class="hint-tab-content">
+                    <!-- Audio Tab Panel -->
+                    <div class="hint-tab-panel active" id="audioPanel">
+                        <div id="audioNotGenerated">
+                            <button class="hint-generate-btn" id="generateTTSBtn">
+                                <span class="hint-gen-icon">🔊</span>
+                                <span class="hint-gen-text">Generate TTS</span>
+                            </button>
+                        </div>
+                        <div id="waveformPlayer" class="waveform-player-inline hidden">
+                            <div id="waveformContent">
+                                <div class="waveform-container">
+                                    <div id="waveform"></div>
+                                </div>
+                                <div class="waveform-controls">
+                                    <span class="waveform-time" id="currentTime">0:00</span>
+                                    <button class="waveform-play-btn" id="waveformPlayBtn" title="Play/Pause">
+                                        ▶
+                                    </button>
+                                    <span class="waveform-time" id="totalTime">0:00</span>
+                                </div>
+                            </div>
+                            <div id="waveformLoading" class="waveform-loading hidden">
+                                <div class="spinner"></div>
+                                <span>Loading waveform...</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="waveform-controls">
-                        <span class="waveform-time" id="currentTime">0:00</span>
-                        <button class="waveform-play-btn" id="waveformPlayBtn" title="Play/Pause">
-                            ▶
-                        </button>
-                        <span class="waveform-time" id="totalTime">0:00</span>
+                    <!-- Romaji Tab Panel -->
+                    <div class="hint-tab-panel" id="romajiPanel">
+                        <div id="romajiNotGenerated">
+                            <button class="hint-generate-btn" id="generateRomajiBtn">
+                                <span class="hint-gen-icon">Aa</span>
+                                <span class="hint-gen-text">Generate Romaji</span>
+                            </button>
+                        </div>
+                        <div id="romajiContent" class="hidden">
+                            <div class="romaji-display" id="romajiText"></div>
+                        </div>
+                    </div>
+                    <!-- Example Tab Panel -->
+                    <div class="hint-tab-panel" id="examplePanel">
+                        <div class="example-drop-zone" id="exampleDropZone">
+                            <div class="drop-zone-icon">📚</div>
+                            <div class="drop-zone-text">Drag a segment here</div>
+                            <div class="drop-zone-hint">Get example sentences for any word</div>
+                        </div>
+                        <div id="exampleLoading" class="example-loading hidden">
+                            <div class="spinner"></div>
+                            <span>Finding examples...</span>
+                        </div>
+                        <div id="exampleContent" class="example-content hidden">
+                            <div class="example-word" id="exampleWord"></div>
+                            <div class="example-sentences" id="exampleSentences"></div>
+                        </div>
                     </div>
                 </div>
-                <div id="waveformLoading" class="waveform-loading hidden">
-                    <div class="spinner"></div>
-                    <span>Loading waveform...</span>
-                </div>
-            </div>
-
-            <div class="actions">
-                <button class="btn btn-secondary" id="hintBtn">
-                    <span class="hint-icon">🔊</span>
-                    <span class="hint-text">Generate TTS</span>
-                </button>
-                <button class="btn btn-secondary" id="romajiBtn">
-                    <span class="hint-icon">Aa</span>
-                    <span class="hint-text">Romaji</span>
-                </button>
-                <button class="btn btn-secondary" id="clearBtn">Clear</button>
-                <button class="btn btn-primary" id="checkBtn">Check Answer</button>
-                <button class="btn btn-secondary" id="nextBtn">Next Sentence</button>
             </div>
 
         </div>
@@ -1101,6 +1376,8 @@
         import { loadDefaultJapaneseParser } from 'https://cdn.jsdelivr.net/npm/budoux/+esm';
         // Import WaveSurfer for audio waveform visualization
         import WaveSurfer from 'https://cdn.jsdelivr.net/npm/wavesurfer.js@7/dist/wavesurfer.esm.js';
+        // Import LZ-String for compression
+        import LZString from 'https://cdn.jsdelivr.net/npm/lz-string@1.5.0/+esm';
 
         const budouxParser = loadDefaultJapaneseParser();
 
@@ -1259,6 +1536,20 @@
         // LocalStorage key
         const STORAGE_KEY = 'nihongo_puzzle_state';
 
+        // Compress base64 data for storage
+        function compressData(data) {
+            if (!data) return data;
+            return LZString.compressToUTF16(data);
+        }
+
+        // Decompress base64 data from storage
+        function decompressData(data) {
+            if (!data) return data;
+            // Check if it's already a data URL (uncompressed, legacy)
+            if (data.startsWith('data:')) return data;
+            return LZString.decompressFromUTF16(data);
+        }
+
         // Save state to localStorage
         function saveState() {
             const state = {
@@ -1275,10 +1566,11 @@
                 quizSentences,
                 currentQuizIndex,
                 isQuizMode,
-                uploadedImageDataUrl,
-                audioCache,
+                uploadedImageDataUrl,  // Already compressed when set
+                audioCache,            // Values already compressed when set
                 romajiCache,
-                translationCache
+                translationCache,
+                exampleCache
             };
             try {
                 // eslint-disable-next-line no-restricted-globals
@@ -1294,7 +1586,16 @@
                 // eslint-disable-next-line no-restricted-globals
                 const saved = localStorage.getItem(STORAGE_KEY);
                 if (saved) {
-                    return JSON.parse(saved);
+                    // Try parsing as JSON first
+                    try {
+                        return JSON.parse(saved);
+                    } catch (parseErr) {
+                        // Fallback: try decompressing (old fully-compressed format)
+                        const decompressed = LZString.decompressFromUTF16(saved);
+                        if (decompressed) {
+                            return JSON.parse(decompressed);
+                        }
+                    }
                 }
             } catch (e) {
                 console.error('Failed to load state:', e);
@@ -1330,15 +1631,33 @@
         const segmentsPool = document.getElementById('segmentsPool');
         const clearBtn = document.getElementById('clearBtn');
         const checkBtn = document.getElementById('checkBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const hintBtn = document.getElementById('hintBtn');
-        const romajiBtn = document.getElementById('romajiBtn');
-        const romajiHint = document.getElementById('romajiHint');
         const romajiText = document.getElementById('romajiText');
+
+        // Hint section tab elements
+        const hintSection = document.getElementById('hintSection');
+        const audioTab = document.getElementById('audioTab');
+        const romajiTab = document.getElementById('romajiTab');
+        const exampleTab = document.getElementById('exampleTab');
+        const audioPanel = document.getElementById('audioPanel');
+        const romajiPanel = document.getElementById('romajiPanel');
+        const examplePanel = document.getElementById('examplePanel');
+        const generateTTSBtn = document.getElementById('generateTTSBtn');
+        const generateRomajiBtn = document.getElementById('generateRomajiBtn');
+        const audioNotGenerated = document.getElementById('audioNotGenerated');
+        const romajiNotGenerated = document.getElementById('romajiNotGenerated');
+        const romajiContent = document.getElementById('romajiContent');
+
+        // Example tab elements
+        const exampleDropZone = document.getElementById('exampleDropZone');
+        const exampleLoading = document.getElementById('exampleLoading');
+        const exampleContent = document.getElementById('exampleContent');
+        const exampleWord = document.getElementById('exampleWord');
+        const exampleSentences = document.getElementById('exampleSentences');
 
         let audioCache = {}; // Cache audio URLs for sentences
         let romajiCache = {}; // Cache romaji for sentences
         let translationCache = {}; // Cache translations for sentences
+        let exampleCache = {}; // Cache example sentences for segments
         let quizSentences = []; // Array of sentences for quiz set
         let currentQuizIndex = 0; // Current index in quiz set
         let isQuizMode = false; // Whether we're in quiz mode
@@ -1406,6 +1725,7 @@
             if (saved.audioCache) audioCache = saved.audioCache;
             if (saved.romajiCache) romajiCache = saved.romajiCache;
             if (saved.translationCache) translationCache = saved.translationCache;
+            if (saved.exampleCache) exampleCache = saved.exampleCache;
 
             // Restore scores
             if (typeof saved.correctCount === 'number') {
@@ -1459,6 +1779,7 @@
                 renderAnswerZone();
                 gameArea.classList.remove('hidden');
                 updateTTSButtonState();
+                updateRomajiState();
                 return;
             }
 
@@ -1487,6 +1808,7 @@
                 renderAnswerZone();
                 gameArea.classList.remove('hidden');
                 updateTTSButtonState();
+                updateRomajiState();
                 saveState(); // Save with new cached translation
             } catch (err) {
                 loadingState.classList.add('hidden');
@@ -1494,13 +1816,66 @@
                 translationDisplay.textContent = '(Translation unavailable - check API key)';
                 renderSegmentsPool();
                 renderAnswerZone();
+                updateTTSButtonState();
+                updateRomajiState();
                 gameArea.classList.remove('hidden');
             }
         }
 
+        // Split text by punctuation before segmentation
+        function splitByPunctuation(text) {
+            // Opening punctuation goes with the enclosed (following) segment
+            const openingPunct = '（「『【〈《(［｛';
+            // Closing/other punctuation goes with the preceding segment
+            const closingPunct = '）」』】〉》)］｝。、！？!?；;：:…・，,';
+
+            const parts = [];
+            let currentPart = '';
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const isOpening = openingPunct.includes(char);
+                const isClosing = closingPunct.includes(char);
+
+                if (isOpening) {
+                    // Opening punctuation: finish current part, start new part with this punctuation
+                    if (currentPart.trim()) {
+                        parts.push(currentPart);
+                    }
+                    currentPart = char;
+                } else if (isClosing) {
+                    // Closing punctuation: add to current part, then finish it
+                    currentPart += char;
+                    if (currentPart.trim()) {
+                        parts.push(currentPart);
+                    }
+                    currentPart = '';
+                } else {
+                    currentPart += char;
+                }
+            }
+
+            // Don't forget the last part
+            if (currentPart.trim()) {
+                parts.push(currentPart);
+            }
+
+            return parts;
+        }
+
         // Segment Japanese text using BudouX
         function segmentJapanese(text) {
-            return budouxParser.parse(text).filter(s => s.trim());
+            // First split by punctuation, then segment each part with BudouX
+            const punctParts = splitByPunctuation(text);
+            const result = [];
+
+            for (const part of punctParts) {
+                // Segment each part with BudouX
+                const segments = budouxParser.parse(part).filter(s => s.trim());
+                result.push(...segments);
+            }
+
+            return result;
         }
 
         // Shuffle array
@@ -1516,12 +1891,20 @@
         // Render segments in pool
         function renderSegmentsPool() {
             segmentsPool.innerHTML = '';
+            let availableCount = 0;
             currentSegments.forEach((seg, index) => {
                 if (!answerSegments.includes(index)) {
                     const el = createSegmentElement(seg, index);
                     segmentsPool.appendChild(el);
+                    availableCount++;
                 }
             });
+
+            // Hide the segments pool container when all segments are used
+            const segmentsCard = segmentsPool.closest('.game-card');
+            if (segmentsCard) {
+                segmentsCard.classList.toggle('hidden', availableCount === 0);
+            }
         }
 
         // Render answer zone
@@ -1536,6 +1919,19 @@
                     const el = createSegmentElement(currentSegments[index], index, true, pos);
                     answerZone.appendChild(el);
                 });
+            }
+
+        }
+
+        // Handle next question action
+        function handleNextQuestion() {
+            if (isQuizMode) {
+                goToNextQuizSentence();
+            } else {
+                // In single sentence mode, clear and focus input
+                sentenceInput.value = '';
+                sentenceInput.focus();
+                gameArea.classList.add('hidden');
             }
         }
 
@@ -1850,8 +2246,8 @@
                 // Convert file to base64 data URL
                 const base64DataUrl = await fileToBase64DataUrl(file);
 
-                // Store the image for preview
-                uploadedImageDataUrl = base64DataUrl;
+                // Store the image for preview (compressed for storage efficiency)
+                uploadedImageDataUrl = compressData(base64DataUrl);
 
                 // Call Gemini-3-Flash with image via OpenAI Compatible API
                 const response = await callPoeAPI('Gemini-3-Flash', [
@@ -1884,27 +2280,22 @@
         async function requestRomaji() {
             if (!currentSentence) return;
 
-            // If already visible, toggle off
-            if (!romajiHint.classList.contains('hidden') && romajiCache[currentSentence]) {
-                romajiHint.classList.add('hidden');
-                return;
-            }
-
-            // Show the hint container
-            romajiHint.classList.remove('hidden');
-
             // Check cache first
             if (romajiCache[currentSentence]) {
                 romajiText.textContent = romajiCache[currentSentence];
                 romajiText.classList.remove('loading');
+                romajiNotGenerated.classList.add('hidden');
+                romajiContent.classList.remove('hidden');
                 return;
             }
 
             // Show loading state
+            romajiNotGenerated.classList.add('hidden');
+            romajiContent.classList.remove('hidden');
             romajiText.textContent = 'Converting to romaji...';
             romajiText.classList.add('loading');
-            romajiBtn.classList.add('loading-audio');
-            romajiBtn.querySelector('.hint-text').textContent = 'Loading...';
+            generateRomajiBtn.classList.add('loading');
+            generateRomajiBtn.querySelector('.hint-gen-text').textContent = 'Generating...';
 
             try {
                 // Call Gemini-3-Flash via OpenAI Compatible API
@@ -1920,15 +2311,15 @@
                 romajiCache[currentSentence] = romaji;
                 romajiText.textContent = romaji;
                 romajiText.classList.remove('loading');
-                romajiBtn.classList.remove('loading-audio');
-                romajiBtn.querySelector('.hint-text').textContent = 'Romaji';
+                generateRomajiBtn.classList.remove('loading');
+                generateRomajiBtn.querySelector('.hint-gen-text').textContent = 'Generate Romaji';
                 // Save state with new cache
                 saveState();
             } catch (err) {
                 romajiText.textContent = 'Error: ' + err.message;
                 romajiText.classList.remove('loading');
-                romajiBtn.classList.remove('loading-audio');
-                romajiBtn.querySelector('.hint-text').textContent = 'Romaji';
+                generateRomajiBtn.classList.remove('loading');
+                generateRomajiBtn.querySelector('.hint-gen-text').textContent = 'Generate Romaji';
             }
         }
 
@@ -1952,7 +2343,8 @@
 
         // Initialize or update wavesurfer with audio URL
         function initWavesurfer(url) {
-            // Show the waveform player
+            // Show the waveform player (within the audio panel)
+            audioNotGenerated.classList.add('hidden');
             waveformPlayer.classList.remove('hidden');
             waveformContent.classList.add('hidden');
             waveformLoading.classList.remove('hidden');
@@ -2012,19 +2404,16 @@
             // Event: Play
             wavesurferInstance.on('play', () => {
                 waveformPlayBtn.textContent = '⏸';
-                hintBtn.classList.add('playing');
             });
 
             // Event: Pause
             wavesurferInstance.on('pause', () => {
                 waveformPlayBtn.textContent = '▶';
-                hintBtn.classList.remove('playing');
             });
 
             // Event: Finish
             wavesurferInstance.on('finish', () => {
                 waveformPlayBtn.textContent = '▶';
-                hintBtn.classList.remove('playing');
                 currentTimeEl.textContent = formatTime(wavesurferInstance.getDuration());
             });
 
@@ -2046,6 +2435,7 @@
         // Hide waveform player
         function hideWaveformPlayer() {
             waveformPlayer.classList.add('hidden');
+            audioNotGenerated.classList.remove('hidden');
             if (wavesurferInstance) {
                 wavesurferInstance.pause();
             }
@@ -2070,6 +2460,23 @@
 
         // Waveform play button click handler
         waveformPlayBtn.addEventListener('click', toggleWavesurferPlayback);
+
+        // Hint tab switching
+        function switchHintTab(tabName) {
+            // Update tab buttons
+            audioTab.classList.toggle('active', tabName === 'audio');
+            romajiTab.classList.toggle('active', tabName === 'romaji');
+            exampleTab.classList.toggle('active', tabName === 'example');
+
+            // Update panels
+            audioPanel.classList.toggle('active', tabName === 'audio');
+            romajiPanel.classList.toggle('active', tabName === 'romaji');
+            examplePanel.classList.toggle('active', tabName === 'example');
+        }
+
+        audioTab.addEventListener('click', () => switchHintTab('audio'));
+        romajiTab.addEventListener('click', () => switchHintTab('romaji'));
+        exampleTab.addEventListener('click', () => switchHintTab('example'));
 
         // Mobile touch seeking for waveform
         const waveformContainer = document.querySelector('#waveform');
@@ -2105,6 +2512,26 @@
         waveformContainer.addEventListener('touchcancel', () => {
             isTouchSeeking = false;
         }, { passive: true });
+
+        // Convert audio blob to base64 data URL for caching
+        async function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        // Fetch audio from URL and convert to base64 data URL
+        async function fetchAudioAsBase64(url) {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error('Failed to fetch audio');
+            }
+            const blob = await response.blob();
+            return await blobToBase64(blob);
+        }
 
         // Extract audio URL from markdown response
         function extractAudioUrl(content) {
@@ -2168,8 +2595,9 @@
 
             // If successful, we get an audio blob directly
             const blob = await response.blob();
-            const audioUrl = URL.createObjectURL(blob);
-            return audioUrl;
+            // Convert to base64 data URL for persistent caching
+            const base64DataUrl = await blobToBase64(blob);
+            return base64DataUrl;
         }
 
         // Request TTS using Poe API
@@ -2195,7 +2623,9 @@
                 throw new Error('No audio was generated. Response: ' + content.substring(0, 100));
             }
 
-            return audioUrl;
+            // Fetch the audio and convert to base64 data URL for persistent caching
+            const base64DataUrl = await fetchAudioAsBase64(audioUrl);
+            return base64DataUrl;
         }
 
         // Request TTS for current sentence
@@ -2204,13 +2634,17 @@
 
             // If audio is cached, load/play it with wavesurfer
             if (audioCache[currentSentence]) {
-                const cachedUrl = audioCache[currentSentence];
+                // Decompress the cached audio data
+                const audioDataUrl = decompressData(audioCache[currentSentence]);
+                // Show the waveform player
+                audioNotGenerated.classList.add('hidden');
+                waveformPlayer.classList.remove('hidden');
                 // If same audio is already loaded, just toggle playback
-                if (currentLoadedAudioUrl === cachedUrl && wavesurferInstance) {
+                if (currentLoadedAudioUrl === audioDataUrl && wavesurferInstance) {
                     toggleWavesurferPlayback();
                 } else {
                     // Load into wavesurfer and auto-play when ready
-                    initWavesurfer(cachedUrl);
+                    initWavesurfer(audioDataUrl);
                     // Auto-play when ready
                     wavesurferInstance.once('ready', () => {
                         wavesurferInstance.play();
@@ -2220,31 +2654,32 @@
             }
 
             // Show loading state and generate TTS
-            hintBtn.classList.add('loading-audio');
-            hintBtn.querySelector('.hint-text').textContent = 'Generating...';
+            generateTTSBtn.classList.add('loading');
+            generateTTSBtn.querySelector('.hint-gen-text').textContent = 'Generating...';
 
             try {
-                let audioUrl;
+                let audioDataUrl;
 
                 if (ttsProvider === 'voicevox') {
-                    audioUrl = await requestVoicevoxTTS();
+                    audioDataUrl = await requestVoicevoxTTS();
                 } else {
-                    audioUrl = await requestPoeTTS();
+                    audioDataUrl = await requestPoeTTS();
                 }
 
-                hintBtn.classList.remove('loading-audio');
+                generateTTSBtn.classList.remove('loading');
 
-                // Cache the audio URL
-                audioCache[currentSentence] = audioUrl;
-                // Update button to show "Listen" (ready to play)
-                hintBtn.querySelector('.hint-text').textContent = 'Listen';
+                // Cache the audio (compressed for storage efficiency)
+                audioCache[currentSentence] = compressData(audioDataUrl);
+                // Hide generate button, show waveform player
+                audioNotGenerated.classList.add('hidden');
+                waveformPlayer.classList.remove('hidden');
                 // Save state with new cache
                 saveState();
-                // Initialize wavesurfer with the new audio
-                initWavesurfer(audioUrl);
+                // Initialize wavesurfer with the audio
+                initWavesurfer(audioDataUrl);
             } catch (err) {
-                hintBtn.classList.remove('loading-audio');
-                hintBtn.querySelector('.hint-text').textContent = 'Generate TTS';
+                generateTTSBtn.classList.remove('loading');
+                generateTTSBtn.querySelector('.hint-gen-text').textContent = 'Generate TTS';
                 showCustomAlert('Error: ' + err.message);
             }
         }
@@ -2252,16 +2687,224 @@
         // Update TTS button state based on cache
         function updateTTSButtonState() {
             if (audioCache[currentSentence]) {
-                hintBtn.querySelector('.hint-text').textContent = 'Listen';
                 // If audio is cached, show the waveform player (pre-loaded)
-                if (currentLoadedAudioUrl !== audioCache[currentSentence]) {
-                    initWavesurfer(audioCache[currentSentence]);
+                audioNotGenerated.classList.add('hidden');
+                waveformPlayer.classList.remove('hidden');
+                // Decompress and load
+                const audioDataUrl = decompressData(audioCache[currentSentence]);
+                if (currentLoadedAudioUrl !== audioDataUrl) {
+                    initWavesurfer(audioDataUrl);
                 }
             } else {
-                hintBtn.querySelector('.hint-text').textContent = 'Generate TTS';
-                // Hide waveform player if no cached audio
-                hideWaveformPlayer();
+                // Show generate button, hide waveform player
+                audioNotGenerated.classList.remove('hidden');
+                waveformPlayer.classList.add('hidden');
+                generateTTSBtn.querySelector('.hint-gen-text').textContent = 'Generate TTS';
             }
+        }
+
+        // Update Romaji state based on cache
+        function updateRomajiState() {
+            if (romajiCache[currentSentence]) {
+                romajiNotGenerated.classList.add('hidden');
+                romajiContent.classList.remove('hidden');
+                romajiText.textContent = romajiCache[currentSentence];
+                romajiText.classList.remove('loading');
+            } else {
+                romajiNotGenerated.classList.remove('hidden');
+                romajiContent.classList.add('hidden');
+                generateRomajiBtn.querySelector('.hint-gen-text').textContent = 'Generate Romaji';
+            }
+        }
+
+        // Track currently displayed example segment
+        let currentExampleSegment = null;
+
+        // Request example sentences for a segment
+        async function requestExamples(segment, forceRefresh = false) {
+            if (!segment) return;
+
+            // Check cache first (unless force refresh or same segment dropped again)
+            if (!forceRefresh && exampleCache[segment]) {
+                const cached = exampleCache[segment];
+                displayExamples(segment, cached.segmentRomaji, cached.examples);
+                return;
+            }
+
+            // Show loading state
+            exampleDropZone.classList.add('hidden');
+            exampleLoading.classList.remove('hidden');
+            exampleContent.classList.add('hidden');
+            currentExampleSegment = segment;
+
+            try {
+                const response = await callPoeAPI('Gemini-3-Flash', [
+                    {
+                        role: 'user',
+                        content: `Give me the romaji reading and 2 short example sentences for the Japanese word/phrase "${segment}". For each example sentence, provide the Japanese sentence and its Traditional Chinese translation.
+
+Format your response exactly like this (no extra text):
+Romaji: [romaji of ${segment}]
+
+1. [Japanese sentence]
+[Traditional Chinese translation]
+
+2. [Japanese sentence]
+[Traditional Chinese translation]`
+                    }
+                ]);
+
+                const content = response.choices[0]?.message?.content || '';
+                const { segmentRomaji, examples } = parseExamples(content);
+
+                // Cache the result
+                exampleCache[segment] = { segmentRomaji, examples };
+                saveState();
+
+                // Display examples
+                displayExamples(segment, segmentRomaji, examples);
+            } catch (err) {
+                exampleLoading.classList.add('hidden');
+                exampleDropZone.classList.remove('hidden');
+                showCustomAlert('Error: ' + err.message);
+            }
+        }
+
+        // Parse example sentences from API response
+        function parseExamples(content) {
+            const examples = [];
+            let segmentRomaji = '';
+            // Match patterns like "Romaji: xxx" then "1. Japanese\nChinese"
+            const lines = content.split('\n').map(l => l.trim()).filter(l => l);
+
+            let currentJp = null;
+            for (const line of lines) {
+                // Check for romaji line at the start
+                const romajiMatch = line.match(/^[Rr]omaji:\s*(.+)/);
+                if (romajiMatch) {
+                    segmentRomaji = romajiMatch[1];
+                    continue;
+                }
+                // Check if it's a numbered Japanese line
+                const numberedMatch = line.match(/^\d+\.\s*(.+)/);
+                if (numberedMatch) {
+                    // If we have a pending JP without ZH, skip it
+                    currentJp = numberedMatch[1];
+                } else if (currentJp) {
+                    // This should be the Chinese translation
+                    examples.push({ jp: currentJp, zh: line });
+                    currentJp = null;
+                }
+            }
+
+            return { segmentRomaji, examples };
+        }
+
+        // Display example sentences
+        function displayExamples(segment, segmentRomaji, examples) {
+            exampleLoading.classList.add('hidden');
+            exampleDropZone.classList.add('hidden');
+            exampleContent.classList.remove('hidden');
+            currentExampleSegment = segment;
+
+            // Show segment with romaji underneath
+            exampleWord.innerHTML = segment + (segmentRomaji ? `<div class="example-romaji">${segmentRomaji}</div>` : '');
+
+            if (examples.length === 0) {
+                exampleSentences.innerHTML = '<div class="example-item"><div class="example-jp">No examples found</div></div>';
+            } else {
+                exampleSentences.innerHTML = examples.map(ex => `
+                    <div class="example-item">
+                        <div class="example-jp">${ex.jp}</div>
+                        <div class="example-zh">${ex.zh}</div>
+                    </div>
+                `).join('');
+            }
+
+            // Add reset button
+            const resetBtn = document.createElement('button');
+            resetBtn.className = 'example-reset-btn';
+            resetBtn.innerHTML = '← Try another word';
+            resetBtn.onclick = resetExamplePanel;
+            exampleSentences.appendChild(resetBtn);
+        }
+
+        // Reset example panel to drop zone state
+        function resetExamplePanel() {
+            exampleDropZone.classList.remove('hidden');
+            exampleLoading.classList.add('hidden');
+            exampleContent.classList.add('hidden');
+            currentExampleSegment = null;
+        }
+
+        // Handle segment drop for examples
+        function handleExampleDrop(e) {
+            e.preventDefault();
+            exampleDropZone.classList.remove('drag-over');
+            examplePanel.classList.remove('drag-over');
+
+            try {
+                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                const segmentText = currentSegments[data.index];
+                if (segmentText) {
+                    // If same segment is dropped, force refresh
+                    const forceRefresh = segmentText === currentExampleSegment;
+                    requestExamples(segmentText, forceRefresh);
+                }
+            } catch (err) {
+                // Ignore invalid data
+            }
+        }
+
+        // Setup example drop zone (initial state)
+        exampleDropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            exampleDropZone.classList.add('drag-over');
+        });
+
+        exampleDropZone.addEventListener('dragleave', () => {
+            exampleDropZone.classList.remove('drag-over');
+        });
+
+        exampleDropZone.addEventListener('drop', handleExampleDrop);
+
+        // Setup example panel (allow dropping when content is showing)
+        examplePanel.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            // Only add visual feedback if content is showing
+            if (!exampleContent.classList.contains('hidden')) {
+                examplePanel.classList.add('drag-over');
+            }
+        });
+
+        examplePanel.addEventListener('dragleave', (e) => {
+            // Only remove if leaving the panel entirely
+            if (!examplePanel.contains(e.relatedTarget)) {
+                examplePanel.classList.remove('drag-over');
+            }
+        });
+
+        examplePanel.addEventListener('drop', handleExampleDrop);
+
+        // Reset hint section for new sentence
+        function resetHintSection() {
+            // Reset audio panel
+            audioNotGenerated.classList.remove('hidden');
+            waveformPlayer.classList.add('hidden');
+            generateTTSBtn.classList.remove('loading');
+            generateTTSBtn.querySelector('.hint-gen-text').textContent = 'Generate TTS';
+
+            // Reset romaji panel
+            romajiNotGenerated.classList.remove('hidden');
+            romajiContent.classList.add('hidden');
+            generateRomajiBtn.classList.remove('loading');
+            generateRomajiBtn.querySelector('.hint-gen-text').textContent = 'Generate Romaji';
+
+            // Reset example panel
+            resetExamplePanel();
+
+            // Reset to audio tab
+            switchHintTab('audio');
         }
 
         // Reset waveform player for new sentence
@@ -2284,9 +2927,10 @@
             currentSentence = sentence.trim();
             answerSegments = [];
             resetCheckButton(); // Reset check button for new sentence
-            romajiHint.classList.add('hidden'); // Hide romaji when starting new sentence
             resetWaveformPlayer(); // Reset waveform player for new sentence
+            resetHintSection(); // Reset hint section for new sentence
             updateTTSButtonState(); // Update TTS button based on cache
+            updateRomajiState(); // Update romaji based on cache
 
             // Segment using BudouX (instant, no API call needed)
             const segments = segmentJapanese(currentSentence);
@@ -2341,10 +2985,26 @@
             return segmentJapanese(currentSentence);
         }
 
+        // Track if answer was checked correct (for next question button)
+        let answerCheckedCorrect = false;
+
         // Reset check button to default state
         function resetCheckButton() {
-            checkBtn.classList.remove('correct', 'incorrect');
-            checkBtn.textContent = 'Check Answer';
+            checkBtn.classList.remove('correct', 'incorrect', 'next-mode');
+            checkBtn.innerHTML = 'Check Answer';
+            answerCheckedCorrect = false;
+        }
+
+        // Handle check button click - uses state to determine action
+        // This prevents mobile double-tap issue caused by changing onclick handlers
+        function handleCheckButtonClick() {
+            if (answerCheckedCorrect) {
+                // Already correct, go to next question
+                handleNextQuestion();
+            } else {
+                // Check the answer
+                checkAnswer();
+            }
         }
 
         // Check answer and highlight wrong positions
@@ -2354,9 +3014,6 @@
 
             totalCount++;
             document.getElementById('totalCount').textContent = totalCount;
-
-            // Reset button state first
-            resetCheckButton();
 
             if (correct) {
                 correctCount++;
@@ -2368,9 +3025,11 @@
                 // Mark all segments as correct
                 highlightSegmentPositions(true);
 
-                // Show result in button
-                checkBtn.classList.add('correct');
-                checkBtn.textContent = '🎉 Correct!';
+                // Transform button to "Next Question"
+                checkBtn.classList.remove('incorrect');
+                checkBtn.classList.add('correct', 'next-mode');
+                checkBtn.innerHTML = '<span>Next Question</span><span class="next-arrow">→</span>';
+                answerCheckedCorrect = true;
             } else {
                 streakCount = 0;
                 document.getElementById('streakCount').textContent = streakCount;
@@ -2380,8 +3039,10 @@
                 highlightSegmentPositions(false);
 
                 // Show result in button
+                checkBtn.classList.remove('correct', 'next-mode');
                 checkBtn.classList.add('incorrect');
-                checkBtn.textContent = '✗ Try Again';
+                checkBtn.innerHTML = '✗ Try Again';
+                answerCheckedCorrect = false;
             }
 
             // Save state after checking answer
@@ -2438,12 +3099,15 @@
                 return;
             }
 
+            // Decompress the image data for display
+            const imageDataUrl = decompressData(uploadedImageDataUrl);
+
             const modal = document.createElement('div');
             modal.className = 'image-preview-modal';
             modal.innerHTML = `
                 <div class="image-preview-container">
                     <button class="image-preview-close">✕</button>
-                    <img src="${uploadedImageDataUrl}" alt="Uploaded novel page" class="image-preview-img">
+                    <img src="${imageDataUrl}" alt="Uploaded novel page" class="image-preview-img">
                 </div>
             `;
 
@@ -2481,20 +3145,10 @@
             });
         });
 
-        hintBtn.addEventListener('click', requestTTS);
-        romajiBtn.addEventListener('click', requestRomaji);
+        generateTTSBtn.addEventListener('click', requestTTS);
+        generateRomajiBtn.addEventListener('click', requestRomaji);
         clearBtn.addEventListener('click', clearAnswer);
-        checkBtn.addEventListener('click', checkAnswer);
-        nextBtn.addEventListener('click', () => {
-            if (isQuizMode) {
-                // In quiz mode, go to next sentence
-                goToNextQuizSentence();
-            } else {
-                sentenceInput.value = '';
-                sentenceInput.focus();
-                gameArea.classList.add('hidden');
-            }
-        });
+        checkBtn.addEventListener('click', handleCheckButtonClick);
 
         // Upload area event listeners
         uploadArea.addEventListener('click', () => imageInput.click());
