@@ -1,3 +1,4 @@
+<!-- IGNORE the sandbox related error, as this is a local webapp -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -120,8 +121,11 @@
             // --- STORE: GAME STATE ---
             Alpine.store('game', {
                 currentSentence: '',
-                segments: [],
-                answerIndices: [],
+                // originalSegments: array of {text, origPos} - shuffled segments with original position tracking
+                originalSegments: [],
+                // virtualSegments: array of arrays - each inner array is a group of indices into originalSegments
+                virtualSegments: [],
+                answerIndices: [], // indices into virtualSegments
                 correctCount: 0,
                 totalCount: 0,
                 streakCount: 0,
@@ -168,6 +172,87 @@
                     this.correctCount = 0;
                     this.totalCount = 0;
                     this.streakCount = 0;
+                },
+
+                // Get combined text for a virtual segment
+                getVirtualText(vIdx) {
+                    const group = this.virtualSegments[vIdx];
+                    if (!group) return '';
+                    return group.map(origIdx => this.originalSegments[origIdx].text).join('');
+                },
+
+                // Check if two virtual segments can merge (consecutive in original sentence)
+                canMerge(vIdx1, vIdx2) {
+                    const group1 = this.virtualSegments[vIdx1];
+                    const group2 = this.virtualSegments[vIdx2];
+                    if (!group1 || !group2) return false;
+
+                    const lastOfGroup1 = this.originalSegments[group1[group1.length - 1]];
+                    const firstOfGroup2 = this.originalSegments[group2[0]];
+
+                    return firstOfGroup2.origPos === lastOfGroup1.origPos + 1;
+                },
+
+                // Merge virtual segment at answerIndex+1 into answerIndex
+                performMerge(answerIndex) {
+                    const vIdx1 = this.answerIndices[answerIndex];
+                    const vIdx2 = this.answerIndices[answerIndex + 1];
+
+                    console.log('[MERGE] Before merge:');
+                    console.log('  vIdx1:', vIdx1, 'vIdx2:', vIdx2);
+                    console.log('  virtualSegments:', JSON.stringify(this.virtualSegments));
+
+                    // Combine groups
+                    this.virtualSegments[vIdx1] = [...this.virtualSegments[vIdx1], ...this.virtualSegments[vIdx2]];
+                    this.virtualSegments[vIdx2] = null; // Mark as merged
+
+                    console.log('[MERGE] After merge:');
+                    console.log('  virtualSegments:', JSON.stringify(this.virtualSegments));
+
+                    // Remove from answer indices
+                    this.answerIndices.splice(answerIndex + 1, 1);
+                    console.log('  answerIndices:', JSON.stringify(this.answerIndices));
+                },
+
+                // Try to merge adjacent segments in answer
+                tryMergeInAnswer() {
+                    let merged = true;
+                    while (merged) {
+                        merged = false;
+                        for (let i = 0; i < this.answerIndices.length - 1; i++) {
+                            const vIdx1 = this.answerIndices[i];
+                            const vIdx2 = this.answerIndices[i + 1];
+
+                            if (this.canMerge(vIdx1, vIdx2)) {
+                                this.performMerge(i);
+                                merged = true;
+                                break;
+                            }
+                        }
+                    }
+                },
+
+                // Reset segments to original state (undo all merges)
+                resetSegments() {
+                    this.virtualSegments = this.originalSegments.map((_, i) => [i]);
+                    this.answerIndices = [];
+                    this.checkState = 'idle';
+                },
+
+                // Get available (non-null) virtual segments not in answer
+                getAvailableSegments() {
+                    const available = [];
+                    for (let i = 0; i < this.virtualSegments.length; i++) {
+                        const group = this.virtualSegments[i];
+                        if (group !== null && !this.answerIndices.includes(i)) {
+                            available.push({
+                                vIdx: i,
+                                text: this.getVirtualText(i)
+                            });
+                        }
+                    }
+                    console.log('[AVAILABLE] Segments in pool:', JSON.stringify(available));
+                    return available;
                 },
 
                 // Split text by punctuation before segmentation
@@ -231,17 +316,26 @@
                     this.currentSentence = sentence;
                     // Use punctuation-aware segmentation
                     const rawSegments = this.segmentJapanese(sentence);
+
+                    // Create segments with original position tracking
+                    const segmentsWithPos = rawSegments.map((text, origPos) => ({ text, origPos }));
+
                     // Shuffle segments
-                    this.segments = [...rawSegments].sort(() => Math.random() - 0.5);
+                    this.originalSegments = [...segmentsWithPos].sort(() => Math.random() - 0.5);
+
+                    // Initialize virtual segments - each original segment is its own group
+                    this.virtualSegments = this.originalSegments.map((_, i) => [i]);
+
                     this.answerIndices = [];
                     this.checkState = 'idle';
                     this.isPlaying = true;
                 },
 
                 addToAnswer(idx) {
-                    if (!this.answerIndices.includes(idx)) {
+                    if (this.virtualSegments[idx] && !this.answerIndices.includes(idx)) {
                         this.answerIndices.push(idx);
                         this.checkState = 'idle';
+                        this.tryMergeInAnswer();
                     }
                 },
 
@@ -251,9 +345,9 @@
                 },
 
                 checkAnswer() {
-                    const userAnswer = this.answerIndices.map(i => this.segments[i]).join('');
+                    const userAnswer = this.answerIndices.map(vIdx => this.getVirtualText(vIdx)).join('');
                     const isCorrect = userAnswer === this.currentSentence;
-                    
+
                     this.totalCount++;
                     if (isCorrect) {
                         this.correctCount++;
@@ -266,10 +360,26 @@
                 },
 
                 isPositionCorrect(pos) {
-                    // Reconstruct the correct order based on original parsing logic with punctuation handling
-                    const correctSegments = this.segmentJapanese(this.currentSentence);
-                    const currentSegText = this.segments[this.answerIndices[pos]];
-                    return currentSegText === correctSegments[pos];
+                    const vIdx = this.answerIndices[pos];
+                    const group = this.virtualSegments[vIdx];
+                    if (!group) return false;
+
+                    // Calculate expected starting position for this merged segment
+                    let expectedPos = 0;
+                    for (let i = 0; i < pos; i++) {
+                        const prevGroup = this.virtualSegments[this.answerIndices[i]];
+                        if (prevGroup) expectedPos += prevGroup.length;
+                    }
+
+                    // Check if all segments in this group are at correct positions
+                    for (let i = 0; i < group.length; i++) {
+                        const origIdx = group[i];
+                        const segment = this.originalSegments[origIdx];
+                        if (segment.origPos !== expectedPos + i) {
+                            return false;
+                        }
+                    }
+                    return true;
                 }
             });
 
@@ -663,9 +773,8 @@
                     game.startGame(game.quizSentences[0]);
                 },
 
-                clearAnswer() {
-                    Alpine.store('game').answerIndices = [];
-                    Alpine.store('game').checkState = 'idle';
+                resetAnswer() {
+                    Alpine.store('game').resetSegments();
                 },
 
                 handleCheck() {
@@ -702,7 +811,7 @@
                     const data = JSON.parse(rawData);
                     const game = Alpine.store('game');
 
-                    if (!data.inAnswer && toAnswerZone) {
+                    if (!data.inAnswer && toAnswerZone && game.virtualSegments[data.idx]) {
                         game.addToAnswer(data.idx);
                     }
                 },
@@ -734,11 +843,11 @@
                         let insertAt = targetPos;
                         if (this.dragPosition === 'after') insertAt++;
                         if (oldPos < insertAt) insertAt--;
-                        
+
                         newIndices.splice(insertAt, 0, item);
                     } else {
                         // Add from pool to specific position
-                        if(!newIndices.includes(data.idx)) {
+                        if(game.virtualSegments[data.idx] && !newIndices.includes(data.idx)) {
                             let insertAt = targetPos;
                             if (this.dragPosition === 'after') insertAt++;
                             newIndices.splice(insertAt, 0, data.idx);
@@ -746,6 +855,8 @@
                     }
                     game.answerIndices = newIndices;
                     game.checkState = 'idle';
+                    // Try to merge after reordering/adding
+                    game.tryMergeInAnswer();
                 }
             }));
 
@@ -849,7 +960,7 @@
                         if (!rawData) return;
 
                         const data = JSON.parse(rawData);
-                        const seg = Alpine.store('game').segments[data.idx];
+                        const seg = Alpine.store('game').getVirtualText(data.idx);
                         if (seg && !this.selectedSegments.includes(seg)) {
                             this.selectedSegments.push(seg);
                         }
@@ -953,8 +1064,22 @@
             </span>
         </div>
 
-        <!-- Input Section -->
-        <div class="bg-paper-50 dark:bg-paper-800 rounded-2xl p-8 shadow-card dark:shadow-card-dark mb-6" x-show="!$store.game.isPlaying && !$store.game.isQuizMode">
+        <!-- Settings Panel (Always Available) -->
+        <div class="bg-paper-50 dark:bg-paper-800 rounded-2xl shadow-card dark:shadow-card-dark mb-6" x-data="{ showSettings: !$store.game.isPlaying && !$store.game.isQuizMode }">
+            <!-- Settings Header / Toggle -->
+            <button class="w-full px-6 py-4 flex items-center justify-between text-left"
+                    :class="{ 'border-b border-paper-200 dark:border-paper-700': showSettings }"
+                    @click="showSettings = !showSettings"
+                    x-show="$store.game.isPlaying || $store.game.isQuizMode">
+                <span class="flex items-center gap-2 text-paper-600 dark:text-paper-300">
+                    <span>⚙️</span>
+                    <span class="font-medium">Settings</span>
+                </span>
+                <span class="text-paper-400 transition-transform duration-200" :class="{ 'rotate-180': showSettings }">▼</span>
+            </button>
+
+            <!-- Settings Content -->
+            <div class="p-8" x-show="showSettings" x-collapse.duration.200ms>
             <!-- Settings / API Keys -->
             <div class="mb-6">
                 <div class="text-xs uppercase tracking-wider text-paper-400 mb-2">Poe API Key</div>
@@ -1011,7 +1136,11 @@
                     </div>
                 </div>
             </div>
+            </div><!-- End Settings Content -->
+        </div><!-- End Settings Panel -->
 
+        <!-- Input Section (only shown when not playing) -->
+        <div class="bg-paper-50 dark:bg-paper-800 rounded-2xl p-8 shadow-card dark:shadow-card-dark mb-6" x-show="!$store.game.isPlaying && !$store.game.isQuizMode">
             <!-- Sentence Input -->
             <div class="text-xs uppercase tracking-wider text-paper-400 mb-2">Enter Japanese Sentence</div>
             <div class="flex gap-3 mb-4">
@@ -1103,7 +1232,7 @@
                         <span class="text-paper-400 text-sm w-full text-center py-4">Click or drag segments here to build the sentence</span>
                     </template>
 
-                    <template x-for="(idx, pos) in $store.game.answerIndices" :key="idx">
+                    <template x-for="(vIdx, pos) in $store.game.answerIndices" :key="vIdx">
                         <div class="px-4 py-2 rounded-xl text-lg cursor-pointer select-none transition-all font-jp"
                              :class="{
                                 'bg-success text-white border-2 border-success': $store.game.checkState === 'correct' || ($store.game.checkState === 'incorrect' && $store.game.isPositionCorrect(pos)),
@@ -1112,18 +1241,18 @@
                                 'ring-2 ring-accent ring-offset-2': dragOverIndex === pos
                              }"
                              draggable="true"
-                             @click="$store.game.removeFromAnswer(idx)"
-                             @dragstart="handleDragStart($event, idx, true, pos)"
+                             @click="$store.game.removeFromAnswer(vIdx)"
+                             @dragstart="handleDragStart($event, vIdx, true, pos)"
                              @dragover.prevent="handleDragOverSegment($event, pos)"
                              @dragleave="dragOverIndex = -1"
                              @drop.stop.prevent="handleDropOnSegment($event, pos)"
-                             x-text="$store.game.segments[idx]">
+                             x-text="$store.game.getVirtualText(vIdx)">
                         </div>
                     </template>
                 </div>
                 <div class="flex gap-3 mt-4">
                     <button class="px-4 py-2 bg-paper-200 dark:bg-paper-700 text-paper-600 dark:text-paper-300 rounded-xl hover:bg-paper-300 dark:hover:bg-paper-600 transition-colors"
-                            @click="clearAnswer()">Clear</button>
+                            @click="resetAnswer()">Reset</button>
                     <button class="flex-1 px-4 py-3 rounded-xl font-medium transition-all"
                             :class="{
                                 'bg-success text-white': $store.game.checkState === 'correct',
@@ -1142,16 +1271,15 @@
 
             <!-- Segments Pool -->
             <div class="bg-paper-50 dark:bg-paper-800 rounded-2xl p-6 shadow-card dark:shadow-card-dark mb-6"
-                 x-show="$store.game.segments.length > $store.game.answerIndices.length">
+                 x-show="$store.game.getAvailableSegments().length > 0">
                 <div class="text-xs uppercase tracking-wider text-paper-400 mb-3">Available Segments</div>
                 <div class="flex flex-wrap gap-2">
-                    <template x-for="(seg, idx) in $store.game.segments" :key="idx">
+                    <template x-for="seg in $store.game.getAvailableSegments()" :key="seg.vIdx">
                         <div class="px-4 py-2 bg-paper-200/70 dark:bg-paper-700 text-paper-700 dark:text-paper-200 rounded-xl text-lg cursor-pointer select-none hover:bg-paper-300 dark:hover:bg-paper-600 hover:shadow transition-all font-jp"
-                             x-show="!$store.game.answerIndices.includes(idx)"
                              draggable="true"
-                             @click="$store.game.addToAnswer(idx)"
-                             @dragstart="handleDragStart($event, idx, false)"
-                             x-text="seg">
+                             @click="$store.game.addToAnswer(seg.vIdx)"
+                             @dragstart="handleDragStart($event, seg.vIdx, false)"
+                             x-text="seg.text">
                         </div>
                     </template>
                 </div>
